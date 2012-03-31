@@ -36,7 +36,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision5", 600, 400)
+Global $hGUI = GUICreate("GWA revision6", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -907,9 +907,17 @@ Func OnOff()
 			GUICtrlSetState($hUseSkills[$i], $GUI_ENABLE)
 			GUICtrlSetState($hSkills[$i], $GUI_ENABLE)
 			GUICtrlSetState($hFunction[$i], $GUI_ENABLE)
+			If GUICtrlRead($hFunction[$i]) == "Interrupt" Then
+				GUICtrlSetState($hDelay[$i], $GUI_ENABLE)
+				GUICtrlSetState($hDistance[$i], $GUI_ENABLE)
+			ElseIf GUICtrlRead($hFunction[$i]) == "Protection" Then
+				GUICtrlSetState($hDelay[$i], $GUI_DISABLE)
+				GUICtrlSetState($hDistance[$i], $GUI_ENABLE)
+			ElseIf GUICtrlRead($hFunction[$i]) == "Self-Defense" Then
+				GUICtrlSetState($hDelay[$i], $GUI_DISABLE)
+				GUICtrlSetState($hDistance[$i], $GUI_DISABLE)
+			EndIf
 			GUICtrlSetState($hSkillType[$i], $GUI_ENABLE)
-			GUICtrlSetState($hDelay[$i], $GUI_ENABLE)
-			GUICtrlSetState($hDistance[$i], $GUI_ENABLE)
 			GUICtrlSetState($hResource[$i], $GUI_ENABLE)
 			GUICtrlSetState($hAmount[$i], $GUI_ENABLE)
 			GUICtrlSetState($hActivation[$i], $GUI_ENABLE)
