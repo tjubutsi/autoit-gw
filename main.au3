@@ -36,7 +36,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision4", 600, 400)
+Global $hGUI = GUICreate("GWA revision5", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -297,7 +297,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
-												ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
+												$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+												ToolTip($sWarning, 1000, 600)
 												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
@@ -312,7 +314,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												Sleep($fExtraTime)
 											EndIf
 											ChangeTarget($objTarget)
-											ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
+											$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+											$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+											ToolTip($sWarning, 1000, 600)
 											Sleep(25)
 											Send($aHotkeys[$i])
 										EndIf
@@ -327,7 +331,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
-												ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
+												$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+												ToolTip($sWarning, 1000, 600)
 												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
@@ -342,7 +348,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														Sleep($fExtraTime)
 													EndIf
 													ChangeTarget($objTarget)
-													ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
+													$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
 													Sleep(25)
 													Send($aHotkeys[$i])
 												EndIf
@@ -359,7 +367,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
-												ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
+												$sWarning = "HEX/COND ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+												ToolTip($sWarning, 1000, 600)
 												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
