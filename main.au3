@@ -11,6 +11,7 @@
 #include <Array.au3>
 #include "include\engine.au3"
 #include "include\getSkillID.au3"
+#include "include\getSkillName.au3"
 
 Initialize(WinGetProcess("Guild Wars"))
 
@@ -35,7 +36,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision3", 600, 400)
+Global $hGUI = GUICreate("GWA revision4", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -165,7 +166,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 	If $bEnabled == 0 Then
 		Return
 	EndIf
-	Local $fDistance, $fCastingTime, $fExtraTime, $objConfirmation, $iConfirmation
+	Local $fDistance, $fCastingTime, $fExtraTime, $objConfirmation, $iConfirmation, $sWarning
 	;~ start timer to calculate processing time
 	Local $fProcessingTime = TimerInit()
 	;~ check if skill that's being used is on the list
@@ -296,6 +297,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
+												ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
 												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
@@ -310,6 +312,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												Sleep($fExtraTime)
 											EndIf
 											ChangeTarget($objTarget)
+											ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
 											Sleep(25)
 											Send($aHotkeys[$i])
 										EndIf
@@ -324,6 +327,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
+												ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
 												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
@@ -338,6 +342,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														Sleep($fExtraTime)
 													EndIf
 													ChangeTarget($objTarget)
+													ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
 													Sleep(25)
 													Send($aHotkeys[$i])
 												EndIf
@@ -350,10 +355,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												If $fExtraTime >= $fCastingTime Then
-													$fExtraTime = Random($fExtraTime-$fCastingTime, $fExtraTime-$fCastingTime+150, 1)
+													$fExtraTime = Random($fExtraTime-$fCastingTime+50, $fExtraTime-$fCastingTime+150, 1)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
+												ToolTip($i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID')), 1000, 600)
 												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
@@ -378,7 +384,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
-												ToolTip("WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')))
+												$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+												ToolTip($sWarning, 1000, 600)
 											EndIf
 										EndIf
 										$bBusy = False
@@ -387,7 +395,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 										If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 											$bBusy = True ;Ready
 											ChangeTarget($objTarget)
-											ToolTip("WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')))
+											$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+											$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+											ToolTip($sWarning, 1000, 600)
 										EndIf
 										$bBusy = False
 										Return
@@ -396,14 +406,18 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
-												ToolTip("HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')))
+												$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+												ToolTip($sWarning, 1000, 600)
 											EndIf
 										Else
 											If $fExtraTime >= $fCastingTime Then
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
-													ToolTip("HEX ON ME")
+													$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
 												EndIf
 											EndIf
 										EndIf
@@ -414,7 +428,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
-												ToolTip("HEX/COND ON " & String(DllStructGetData($objTarget, 'PlayerNumber')))
+												$sWarning = "HEX/COND ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+												ToolTip($sWarning, 1000, 600)
 											EndIf
 										EndIf
 										$bBusy = False
