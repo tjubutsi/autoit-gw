@@ -36,7 +36,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision8", 600, 400)
+Global $hGUI = GUICreate("GWA revision9", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -52,6 +52,8 @@ Global $bCasting = False
 Global $fCastRemaining = 0
 Global $fMyActivation = 0
 Global $fMyAftercast = 0
+Global $fMovementTimer = 0
+Global $fMovementActivation = 0
 
 Global $sSkillsList[9]
 Global $aSkillsChecked[9]
@@ -364,7 +366,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												If $fExtraTime >= $fCastingTime Then
-													$fExtraTime = Random($fExtraTime-$fCastingTime+50, $fExtraTime-$fCastingTime+150, 1)
+													$fExtraTime = Random($fExtraTime-$fCastingTime+75, $fExtraTime-$fCastingTime+150, 1)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
@@ -490,15 +492,20 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 			EndIf
 		Next
 		If DllStructGetData($objTarget, 'ID') == GetMyID() Then
-			If StringInStr(",332,", "," & String(DllStructGetData($objSkill, 'ID')) & ",") Or StringInStr(",2808,", "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
-				If Not GetIsDead($objOwnInfo) And GetIsMoving($objOwnInfo) And DllStructGetData($objOwnInfo, 'Skill') == 0 Then
-					Send("{ESCAPE}")
-					Return
-				EndIf
+			If StringInStr($sBullsList, "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
+				$fMovementTimer = TimerInit()
+				$fMovementActivation = 1000 * $fTime
+				AdlibRegister("DodgeBulls", 20)
+				Return
 			EndIf
 		EndIf
 	EndIf
 EndFunc   ;==>CheckRupt
+
+Func DodgeBulls()
+	If GetIsMoving(-2) Then CancelAction()
+	If TimerDiff($fMovementTimer) > $fMovementActivation Then AdlibUnRegister("DodgeBulls")
+EndFunc   ;==>DodgeBulls
 #endregion main_functions
 
 #region event_handlers
