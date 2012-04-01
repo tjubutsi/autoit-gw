@@ -36,7 +36,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision6", 600, 400)
+Global $hGUI = GUICreate("GWA revision7", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -169,17 +169,17 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 	Local $fDistance, $fCastingTime, $fExtraTime, $objConfirmation, $iConfirmation, $sWarning
 	;~ start timer to calculate processing time
 	Local $fProcessingTime = TimerInit()
-	;~ check if skill that's being used is on the list
-	If StringInStr($sFullList, "," & String(DllStructGetData($objSkill, 'ID')) & ",") == 0 Then
-		Return
-	EndIf
 	;~ check if i'm the one casting, note it for later
 	If DllStructGetData($objCaster, 'ID') == GetMyID() Then
 		$bBusy = False
 		$fMyTimer = TimerInit()
-		$fMyActivation = $fTime
+		$fMyActivation = $fTime * 1000
 		$bCasting = True
 		$fMyAftercast = 1000 * DllStructGetData($objSkill, 'Aftercast')
+		Return
+	EndIf
+	;~ check if skill that's being used is on the list
+	If StringInStr($sFullList, "," & String(DllStructGetData($objSkill, 'ID')) & ",") == 0 Then
 		Return
 	EndIf
 	;~ check if agent is enemy
@@ -1299,7 +1299,7 @@ SetEvent("", "", "", "", "Load")
 GUISetState(True, $hGUI)
 While 1
 	If $bCasting == True Then
-		$fCastRemaining = (($fMyActivation * 1000) + $fMyAftercast) - TimerDiff($fMyTimer)
+		$fCastRemaining = $fMyActivation + $fMyAftercast - TimerDiff($fMyTimer)
 		If $fCastRemaining <= 0 Then
 			$fCastRemaining = 0
 			$bCasting = False
