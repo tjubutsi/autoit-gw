@@ -25,6 +25,7 @@ HotKeySet("!a", "TargetOnOff")
 HotKeySet("!v", "MarksOnOff")
 HotKeySet("!c", "MarkTarget")
 HotKeySet("!q", "PauseOnOff")
+HotKeySet("!{F1}", "AntiRuptOnOff")
 HotKeySet("!z", "ShowEnemyParty")
 HotKeySet("^1", "ChangeStateOfSkill1")
 HotKeySet("^2", "ChangeStateOfSkill2")
@@ -36,7 +37,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision9", 600, 400)
+Global $hGUI = GUICreate("GWA revision10", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -45,6 +46,7 @@ Global $bLockMode = False
 Global $bTargetMode = False
 Global $bMarkedMode = False
 Global $bInterruptingPaused = False
+Global $bAntiRuptEnabled = False
 
 Global $bBusy = False
 Global $fMyTimer = 0
@@ -58,10 +60,11 @@ Global $fMovementActivation = 0
 Global $sSkillsList[9]
 Global $aSkillsChecked[9]
 Global $sBullsList = ",237,332,843,2808,"
-Global $sFullList = $sBullsList
+Global $sAntiRupt = "399,1726,409,426,61,3185,932,57,1053,1342,1344,860,408,1992,5,25,953,24,803,1994,931,23,"
+Global $sFullList = $sBullsList & $sAntiRupt
 Global $aHotkeys[9] = ["", "q", "w", "e", "r", "a", "s", "d", "f"]
 
-Global $iTargeted
+Global $iTargeted = 0
 Global $sMarkedTargets = ","
 
 Global $hSkills[9]
@@ -498,6 +501,14 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 				AdlibRegister("DodgeBulls", 20)
 				Return
 			EndIf
+			If StringInStr($sAntiRupt, "," & String(DllStructGetData($objSkill, 'ID')) & ",") And $bAntiRuptEnabled == True Then
+				If 1000 * $fTime < $fMyActivation - TimerDiff($fMyTimer) Then
+					If DllStructGetData($objOwnInfo, 'Skill') <> 0 Then
+						CancelAction()
+						Return
+					EndIf
+				EndIf
+			EndIf
 		EndIf
 	EndIf
 EndFunc   ;==>CheckRupt
@@ -909,7 +920,7 @@ Func OnOff()
 	Else
 		GUICtrlSetData($hOnOff, "Enable")
 		ToolTip("OFF", 0, 0, "Information", 1)
-		$sFullList = $sBullsList
+		$sFullList = $sBullsList & $sAntiRupt
 
 		For $i = 1 To 8 Step 1
 			GUICtrlSetState($hUseSkills[$i], $GUI_ENABLE)
@@ -1251,6 +1262,15 @@ Func PauseOnOff()
 		ToolTip("UNPAUSED", 0, 0, "Information", 1)
 	EndIf
 EndFunc   ;==>PauseOnOff
+
+Func AntiRuptOnOff()
+	$bAntiRuptEnabled = Not $bAntiRuptEnabled
+	If $bAntiRuptEnabled = 1 Then
+		ToolTip("ANTI RUPT ENABLED", 0, 0, "Information", 1)
+	ElseIf $bAntiRuptEnabled = 0 Then
+		ToolTip("ANTI RUPT DISABLED", 0, 0, "Information", 1)
+	EndIf
+EndFunc   ;==>AntiRuptOnOff
 
 Func GetTeam($aTeam)
 	Local $lTeamNumber = $aTeam
