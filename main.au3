@@ -36,7 +36,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision7", 600, 400)
+Global $hGUI = GUICreate("GWA revision8", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -55,7 +55,8 @@ Global $fMyAftercast = 0
 
 Global $sSkillsList[9]
 Global $aSkillsChecked[9]
-Global $sFullList = ",332,2808,"
+Global $sBullsList = ",237,332,843,2808,"
+Global $sFullList = $sBullsList
 Global $aHotkeys[9] = ["", "q", "w", "e", "r", "a", "s", "d", "f"]
 
 Global $iTargeted
@@ -901,7 +902,7 @@ Func OnOff()
 	Else
 		GUICtrlSetData($hOnOff, "Enable")
 		ToolTip("OFF", 0, 0, "Information", 1)
-		$sFullList = ",332,2808,"
+		$sFullList = $sBullsList
 
 		For $i = 1 To 8 Step 1
 			GUICtrlSetState($hUseSkills[$i], $GUI_ENABLE)
