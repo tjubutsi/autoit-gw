@@ -194,6 +194,22 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 	EndIf
 	;~ check if agent is enemy
 	If DllStructGetData($objCaster, 'Allegiance') == 0x3 Then
+		If DllStructGetData($objTarget, 'ID') == GetMyID() Then
+			If StringInStr($sAntiRupt, "," & String(DllStructGetData($objSkill, 'ID')) & ",") And $bAntiRuptEnabled == True Then
+				If 1000 * $fTime < $fMyActivation - TimerDiff($fMyTimer) Then
+					If GetIsCasting(-2) Then
+						CancelAction()
+						Return
+					EndIf
+				EndIf
+			EndIf
+			If StringInStr($sBullsList, "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
+				$fMovementTimer = TimerInit()
+				$fMovementActivation = 1000 * $fTime
+				AdlibRegister("DodgeBulls", 20)
+				Return
+			EndIf
+		EndIf
 		;~ 	get needed info
 		Local $objSkillbar = GetSkillBar()
 		Local $objOwnInfo = GetAgentByID(-2)
@@ -529,22 +545,6 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 				EndIf
 			EndIf
 		Next
-		If DllStructGetData($objTarget, 'ID') == GetMyID() Then
-			If StringInStr($sBullsList, "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
-				$fMovementTimer = TimerInit()
-				$fMovementActivation = 1000 * $fTime
-				AdlibRegister("DodgeBulls", 20)
-				Return
-			EndIf
-			If StringInStr($sAntiRupt, "," & String(DllStructGetData($objSkill, 'ID')) & ",") And $bAntiRuptEnabled == True Then
-				If 1000 * $fTime < $fMyActivation - TimerDiff($fMyTimer) Then
-					If DllStructGetData($objOwnInfo, 'Skill') <> 0 Then
-						CancelAction()
-						Return
-					EndIf
-				EndIf
-			EndIf
-		EndIf
 	EndIf
 EndFunc   ;==>CheckRupt
 
