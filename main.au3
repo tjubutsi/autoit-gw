@@ -35,7 +35,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision1", 600, 400)
+Global $hGUI = GUICreate("GWA revision2", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -291,13 +291,12 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
-												ChangeTarget($objTarget)
 												If ($fExtraTime - $fCastingTime) >= 0 Then
-													$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .7, 1)
-													Sleep($fExtraTime+10)
-												Else
-													Sleep(25)
+													$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
+													Sleep($fExtraTime)
 												EndIf
+												ChangeTarget($objTarget)
+												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
 											$bBusy = False
@@ -306,13 +305,12 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 									ElseIf $aSkillType[$i] == "SpellAlly" Then
 										If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 											$bBusy = True ;Ready
-											ChangeTarget($objTarget)
 											If ($fExtraTime - $fCastingTime) >= 0 Then
-												$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .7, 1)
-												Sleep($fExtraTime+10)
-											Else
-												Sleep(25)
+												$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
+												Sleep($fExtraTime)
 											EndIf
+											ChangeTarget($objTarget)
+											Sleep(25)
 											Send($aHotkeys[$i])
 										EndIf
 										$bBusy = False
@@ -321,13 +319,12 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
-												ChangeTarget($objTarget)
 												If ($fExtraTime - $fCastingTime) >= 0 Then
-													$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .7, 1)
+													$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
 													Sleep($fExtraTime)
-												Else
-													Sleep(25)
 												EndIf
+												ChangeTarget($objTarget)
+												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
 											$bBusy = False
@@ -336,13 +333,12 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											If $fExtraTime >= $fCastingTime Then
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
-													ChangeTarget($objTarget)
 													If ($fExtraTime - $fCastingTime) >= 0 Then
-														$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .7, 1)
+														$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
 														Sleep($fExtraTime)
-													Else
-														Sleep(25)
 													EndIf
+													ChangeTarget($objTarget)
+													Sleep(25)
 													Send($aHotkeys[$i])
 												EndIf
 												$bBusy = False
@@ -353,13 +349,12 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
-												ChangeTarget($objTarget)
 												If $fExtraTime >= $fCastingTime Then
 													$fExtraTime = Random($fExtraTime-$fCastingTime, $fExtraTime-$fCastingTime+150, 1)
-													Sleep($fExtraTime+10)
-												Else
-													Sleep(25)
+													Sleep($fExtraTime)
 												EndIf
+												ChangeTarget($objTarget)
+												Sleep(25)
 												Send($aHotkeys[$i])
 											EndIf
 											$bBusy = False
