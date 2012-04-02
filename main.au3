@@ -37,7 +37,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision10", 600, 400)
+Global $hGUI = GUICreate("GWA revision11", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -56,6 +56,10 @@ Global $fMyActivation = 0
 Global $fMyAftercast = 0
 Global $fMovementTimer = 0
 Global $fMovementActivation = 0
+
+Global $iFuseNr = 0
+Global $iFuseTarget = 0
+Global $fFuseTimer = 0
 
 Global $sSkillsList[9]
 Global $aSkillsChecked[9]
@@ -382,6 +386,25 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											$bBusy = False
 											Return
 										EndIf
+									ElseIf $aSkillType[$i] == "Fuse" Then
+										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+												$bBusy = True ;Ready
+												If $fExtraTime >= $fCastingTime Then
+													$fExtraTime = Random($fExtraTime-$fCastingTime+75, $fExtraTime-$fCastingTime+150, 1)
+													Sleep($fExtraTime)
+												EndIf
+												$sWarning = "FUSE ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+												ToolTip($sWarning, 1000, 600)
+												$iFuseTarget = DllStructGetData($objTarget, 'ID')
+												$iFuseNr = $i
+												$fFuseTimer = TimerInit()
+												AdlibRegister("CheckForFuse", 20)
+											EndIf
+											$bBusy = False
+											Return
+										EndIf
 									EndIf
 								EndIf
 							EndIf
@@ -445,6 +468,18 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
 												$sWarning = "HEX/COND ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+												ToolTip($sWarning, 1000, 600)
+											EndIf
+										EndIf
+										$bBusy = False
+										Return
+									ElseIf $aSkillType[$i] == "Fuse" Then
+										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+												$bBusy = True ;Ready
+												ChangeTarget($objTarget)
+												$sWarning = "FUSE ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
 												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 												ToolTip($sWarning, 1000, 600)
 											EndIf
@@ -517,6 +552,21 @@ Func DodgeBulls()
 	If GetIsMoving(-2) Then CancelAction()
 	If TimerDiff($fMovementTimer) > $fMovementActivation Then AdlibUnRegister("DodgeBulls")
 EndFunc   ;==>DodgeBulls
+
+Func CheckForFuse()
+	$objTarget = GetAgentByID($iFuseTarget)
+	If (DllStructGetData($objTarget, 'HP')) < 0.45 Then
+		UseFuse($objTarget, $iFuseNr)
+	EndIf
+	If TimerDiff($fFuseTimer) > 2250 Then AdlibUnRegister("CheckForFuse")
+EndFunc   ;==>CheckForFuse
+
+Func UseFuse($objTarget, $i)
+	AdlibUnRegister("CheckForFuse")
+	ChangeTarget($objTarget)
+	Sleep(20)
+	Send($aHotkeys[$i])
+EndFunc   ;==>UseFuse
 #endregion main_functions
 
 #region event_handlers
@@ -661,7 +711,7 @@ Func EventHandler()
 						GUICtrlSetState($hDelay[$i], $GUI_ENABLE)
 						GUICtrlSetState($hDistance[$i], $GUI_ENABLE)
 					Case "Protection"
-						GUICtrlSetData($hSkillType[$i], "|SpellAlly|SpellOtherAlly|Veil|Heal", IniRead($hFileSets, GUICtrlRead($hSkillSet), "SkillType_" & $i, "SpellAlly"))
+						GUICtrlSetData($hSkillType[$i], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", IniRead($hFileSets, GUICtrlRead($hSkillSet), "SkillType_" & $i, "SpellAlly"))
 						GUICtrlSetState($hDelay[$i], $GUI_DISABLE)
 						GUICtrlSetState($hDistance[$i], $GUI_ENABLE)
 					Case "Self-Defense"
@@ -689,7 +739,7 @@ Func EventHandler()
 					GUICtrlSetState($hDelay[GUICtrlRead($hTab) + 1], $GUI_ENABLE)
 					GUICtrlSetState($hDistance[GUICtrlRead($hTab) + 1], $GUI_ENABLE)
 				Case "Protection"
-					GUICtrlSetData($hSkillType[GUICtrlRead($hTab) + 1], "|SpellAlly|SpellOtherAlly|Veil|Heal", IniRead($hFile, GUICtrlRead($hSkill), "SkillType", "SpellAlly"))
+					GUICtrlSetData($hSkillType[GUICtrlRead($hTab) + 1], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", IniRead($hFile, GUICtrlRead($hSkill), "SkillType", "SpellAlly"))
 					GUICtrlSetState($hDelay[GUICtrlRead($hTab) + 1], $GUI_DISABLE)
 					GUICtrlSetState($hDistance[GUICtrlRead($hTab) + 1], $GUI_ENABLE)
 				Case "Self-Defense"
@@ -752,7 +802,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[1], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[1], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[1]) == "Protection" Then
-				GUICtrlSetData($hSkillType[1], "|SpellAlly|SpellOtherAlly|Veil|Heal", "SpellAlly")
+				GUICtrlSetData($hSkillType[1], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
 				GUICtrlSetState($hDelay[1], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[1], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[1]) == "Self-Defense" Then
@@ -766,7 +816,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[2], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[2], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[2]) == "Protection" Then
-				GUICtrlSetData($hSkillType[2], "|SpellAlly|SpellOtherAlly|Veil|Heal", "SpellAlly")
+				GUICtrlSetData($hSkillType[2], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
 				GUICtrlSetState($hDelay[2], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[2], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[2]) == "Self-Defense" Then
@@ -780,7 +830,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[3], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[3], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[3]) == "Protection" Then
-				GUICtrlSetData($hSkillType[3], "|SpellAlly|SpellOtherAlly|Veil|Heal", "SpellAlly")
+				GUICtrlSetData($hSkillType[3], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
 				GUICtrlSetState($hDelay[3], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[3], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[3]) == "Self-Defense" Then
@@ -794,7 +844,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[4], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[4], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[4]) == "Protection" Then
-				GUICtrlSetData($hSkillType[4], "|SpellAlly|SpellOtherAlly|Veil|Heal", "SpellAlly")
+				GUICtrlSetData($hSkillType[4], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
 				GUICtrlSetState($hDelay[4], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[4], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[4]) == "Self-Defense" Then
@@ -808,7 +858,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[5], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[5], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[5]) == "Protection" Then
-				GUICtrlSetData($hSkillType[5], "|SpellAlly|SpellOtherAlly|Veil|Heal", "SpellAlly")
+				GUICtrlSetData($hSkillType[5], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
 				GUICtrlSetState($hDelay[5], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[5], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[5]) == "Self-Defense" Then
@@ -822,7 +872,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[6], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[6], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[6]) == "Protection" Then
-				GUICtrlSetData($hSkillType[6], "|SpellAlly|SpellOtherAlly|Veil|Heal", "SpellAlly")
+				GUICtrlSetData($hSkillType[6], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
 				GUICtrlSetState($hDelay[6], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[6], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[6]) == "Self-Defense" Then
@@ -836,7 +886,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[7], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[7], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[7]) == "Protection" Then
-				GUICtrlSetData($hSkillType[7], "|SpellAlly|SpellOtherAlly|Veil|Heal", "SpellAlly")
+				GUICtrlSetData($hSkillType[7], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
 				GUICtrlSetState($hDelay[7], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[7], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[7]) == "Self-Defense" Then
@@ -850,7 +900,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[8], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[8], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[8]) == "Protection" Then
-				GUICtrlSetData($hSkillType[8], "|SpellAlly|SpellOtherAlly|Veil|Heal", "SpellAlly")
+				GUICtrlSetData($hSkillType[8], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
 				GUICtrlSetState($hDelay[8], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[8], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[8]) == "Self-Defense" Then
