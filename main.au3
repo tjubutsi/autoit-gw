@@ -37,7 +37,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision11", 600, 400)
+Global $hGUI = GUICreate("GWA revision12", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -312,10 +312,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 									;~ calculate time needed to activate spell
 									$fCastingTime = $aActivation[$i]
 									$fExtraTime = ($fTime * 1000 - (TimerDiff($fProcessingTime) + $fCastRemaining + (1.3 * GetPing())))
-									;~ check if its other_ally only spell
-									If $aSkillType[$i] == "SpellOtherAlly" Then
-										;~ check if protection spell can target yourself
-										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+									;~ check type of a skill
+									Switch $aSkillType[$i]
+										Case "ProtAlly"
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												If ($fExtraTime - $fCastingTime) >= 0 Then
@@ -331,33 +330,33 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											EndIf
 											$bBusy = False
 											Return
-										EndIf
-									ElseIf $aSkillType[$i] == "SpellAlly" Then
-										If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
-											$bBusy = True ;Ready
-											If ($fExtraTime - $fCastingTime) >= 0 Then
-												$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
-												Sleep($fExtraTime)
+										Case "ProtOtherAlly"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+													$bBusy = True ;Ready
+													If ($fExtraTime - $fCastingTime) >= 0 Then
+														$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
+														Sleep($fExtraTime)
+													EndIf
+													ChangeTarget($objTarget)
+													$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
+													Sleep(25)
+													Send($aHotkeys[$i])
+												EndIf
 											EndIf
-											ChangeTarget($objTarget)
-											$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-											$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-											ToolTip($sWarning, 1000, 600)
-											Sleep(25)
-											Send($aHotkeys[$i])
-										EndIf
-										$bBusy = False
-										Return
-									ElseIf $aSkillType[$i] == "Veil" Then
-										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+											$bBusy = False
+											Return
+										Case "HealAlly"
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
-												If ($fExtraTime - $fCastingTime) >= 0 Then
-													$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
+												If $fExtraTime >= $fCastingTime Then
+													$fExtraTime = Random($fExtraTime-$fCastingTime+100, $fExtraTime-$fCastingTime+175, 1)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
-												$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning = "HEAL ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
 												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 												ToolTip($sWarning, 1000, 600)
 												Sleep(25)
@@ -365,8 +364,26 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											EndIf
 											$bBusy = False
 											Return
-										Else
-											If $fExtraTime >= $fCastingTime Then
+										Case "HealOtherAlly"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+													$bBusy = True ;Ready
+													If $fExtraTime >= $fCastingTime Then
+														$fExtraTime = Random($fExtraTime-$fCastingTime+100, $fExtraTime-$fCastingTime+175, 1)
+														Sleep($fExtraTime)
+													EndIf
+													ChangeTarget($objTarget)
+													$sWarning = "HEAL ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
+													Sleep(25)
+													Send($aHotkeys[$i])
+												EndIf
+											EndIf
+											$bBusy = False
+											Return
+										Case "Veil"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
 													If ($fExtraTime - $fCastingTime) >= 0 Then
@@ -380,48 +397,45 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													Sleep(25)
 													Send($aHotkeys[$i])
 												EndIf
-												$bBusy = False
-												Return
-											EndIf
-										EndIf
-									ElseIf $aSkillType[$i] == "Heal" Then
-										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
-											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
-												$bBusy = True ;Ready
+											Else
 												If $fExtraTime >= $fCastingTime Then
-													$fExtraTime = Random($fExtraTime-$fCastingTime+75, $fExtraTime-$fCastingTime+150, 1)
-													Sleep($fExtraTime)
+													If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+														$bBusy = True ;Ready
+														If ($fExtraTime - $fCastingTime) >= 0 Then
+															$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
+															Sleep($fExtraTime)
+														EndIf
+														ChangeTarget($objTarget)
+														$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+														Sleep(25)
+														Send($aHotkeys[$i])
+													EndIf
 												EndIf
-												ChangeTarget($objTarget)
-												$sWarning = "HEX/COND ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-												ToolTip($sWarning, 1000, 600)
-												Sleep(25)
-												Send($aHotkeys[$i])
 											EndIf
 											$bBusy = False
 											Return
-										EndIf
-									ElseIf $aSkillType[$i] == "Fuse" Then
-										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
-											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
-												$bBusy = True ;Ready
-												If $fExtraTime >= $fCastingTime Then
-													$fExtraTime = Random($fExtraTime-$fCastingTime+75, $fExtraTime-$fCastingTime+150, 1)
-													Sleep($fExtraTime)
+										Case "Fuse"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+													$bBusy = True ;Ready
+													If $fExtraTime >= $fCastingTime Then
+														$fExtraTime = Random($fExtraTime-$fCastingTime+100, $fExtraTime-$fCastingTime+175, 1)
+														Sleep($fExtraTime)
+													EndIf
+													$sWarning = "FUSE ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
+													$iFuseTarget = DllStructGetData($objTarget, 'ID')
+													$iFuseNr = $i
+													$fFuseTimer = TimerInit()
+													AdlibRegister("CheckForFuse", 20)
 												EndIf
-												$sWarning = "FUSE ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-												ToolTip($sWarning, 1000, 600)
-												$iFuseTarget = DllStructGetData($objTarget, 'ID')
-												$iFuseNr = $i
-												$fFuseTimer = TimerInit()
-												AdlibRegister("CheckForFuse", 20)
 											EndIf
 											$bBusy = False
 											Return
-										EndIf
-									EndIf
+									EndSwitch
 								EndIf
 							EndIf
 						ElseIf $aFunction[$i] == "Protection" And $bInterruptingPaused Then
@@ -429,13 +443,9 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 							$fDistance = GetDistance($objOwnInfo, $objTarget)
 							If $aDistance[$i] >= $fDistance Then
 								If StringInStr($sSkillsList[$i], "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
-									;~ calculate time needed to activate spell
-									$fCastingTime = $aActivation[$i]
-									$fExtraTime = ($fTime * 1000 - (TimerDiff($fProcessingTime) + $fCastRemaining + (1.3 * GetPing())))
-									;~ check if its other_ally only spell
-									If $aSkillType[$i] == "SpellOtherAlly" Then
-										;~ check if protection spell can target yourself
-										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+									;~ check type of a skill
+									Switch $aSkillType[$i]
+										Case "ProtAlly"
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
@@ -443,30 +453,44 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 												ToolTip($sWarning, 1000, 600)
 											EndIf
-										EndIf
-										$bBusy = False
-										Return
-									ElseIf $aSkillType[$i] == "SpellAlly" Then
-										If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
-											$bBusy = True ;Ready
-											ChangeTarget($objTarget)
-											$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-											$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-											ToolTip($sWarning, 1000, 600)
-										EndIf
-										$bBusy = False
-										Return
-									ElseIf $aSkillType[$i] == "Veil" Then
-										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+											$bBusy = False
+											Return
+										Case "ProtOtherAlly"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+													$bBusy = True ;Ready
+													ChangeTarget($objTarget)
+													$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
+												EndIf
+											EndIf
+											$bBusy = False
+											Return
+										Case "HealAlly"
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
-												$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+												$sWarning = "HEAL ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
 												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 												ToolTip($sWarning, 1000, 600)
 											EndIf
-										Else
-											If $fExtraTime >= $fCastingTime Then
+											$bBusy = False
+											Return
+										Case "HealOtherAlly"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+													$bBusy = True ;Ready
+													ChangeTarget($objTarget)
+													$sWarning = "HEAL ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
+												EndIf
+											EndIf
+											$bBusy = False
+											Return
+										Case "Veil"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
@@ -474,35 +498,32 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 													ToolTip($sWarning, 1000, 600)
 												EndIf
+											Else
+												If $fExtraTime >= $fCastingTime Then
+													If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+														$bBusy = True ;Ready
+														ChangeTarget($objTarget)
+														$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
+												EndIf
 											EndIf
-										EndIf
-										$bBusy = False
-										Return
-									ElseIf $aSkillType[$i] == "Heal" Then
-										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
-											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
-												$bBusy = True ;Ready
-												ChangeTarget($objTarget)
-												$sWarning = "HEX/COND ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-												ToolTip($sWarning, 1000, 600)
+											$bBusy = False
+											Return
+										Case "Fuse"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+													$bBusy = True ;Ready
+													ChangeTarget($objTarget)
+													$sWarning = "FUSE ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
+												EndIf
 											EndIf
-										EndIf
-										$bBusy = False
-										Return
-									ElseIf $aSkillType[$i] == "Fuse" Then
-										If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
-											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
-												$bBusy = True ;Ready
-												ChangeTarget($objTarget)
-												$sWarning = "FUSE ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-												ToolTip($sWarning, 1000, 600)
-											EndIf
-										EndIf
-										$bBusy = False
-										Return
-									EndIf
+											$bBusy = False
+											Return
+									EndSwitch
 								EndIf
 							EndIf
 						ElseIf $aFunction[$i] == "Self-Defense" Then
@@ -711,7 +732,7 @@ Func EventHandler()
 						GUICtrlSetState($hDelay[$i], $GUI_ENABLE)
 						GUICtrlSetState($hDistance[$i], $GUI_ENABLE)
 					Case "Protection"
-						GUICtrlSetData($hSkillType[$i], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", IniRead($hFileSets, GUICtrlRead($hSkillSet), "SkillType_" & $i, "SpellAlly"))
+						GUICtrlSetData($hSkillType[$i], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", IniRead($hFileSets, GUICtrlRead($hSkillSet), "SkillType_" & $i, "ProtAlly"))
 						GUICtrlSetState($hDelay[$i], $GUI_DISABLE)
 						GUICtrlSetState($hDistance[$i], $GUI_ENABLE)
 					Case "Self-Defense"
@@ -739,7 +760,7 @@ Func EventHandler()
 					GUICtrlSetState($hDelay[GUICtrlRead($hTab) + 1], $GUI_ENABLE)
 					GUICtrlSetState($hDistance[GUICtrlRead($hTab) + 1], $GUI_ENABLE)
 				Case "Protection"
-					GUICtrlSetData($hSkillType[GUICtrlRead($hTab) + 1], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", IniRead($hFile, GUICtrlRead($hSkill), "SkillType", "SpellAlly"))
+					GUICtrlSetData($hSkillType[GUICtrlRead($hTab) + 1], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", IniRead($hFile, GUICtrlRead($hSkill), "SkillType", "ProtAlly"))
 					GUICtrlSetState($hDelay[GUICtrlRead($hTab) + 1], $GUI_DISABLE)
 					GUICtrlSetState($hDistance[GUICtrlRead($hTab) + 1], $GUI_ENABLE)
 				Case "Self-Defense"
@@ -802,7 +823,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[1], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[1], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[1]) == "Protection" Then
-				GUICtrlSetData($hSkillType[1], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
+				GUICtrlSetData($hSkillType[1], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", "ProtAlly")
 				GUICtrlSetState($hDelay[1], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[1], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[1]) == "Self-Defense" Then
@@ -816,7 +837,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[2], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[2], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[2]) == "Protection" Then
-				GUICtrlSetData($hSkillType[2], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
+				GUICtrlSetData($hSkillType[2], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", "ProtAlly")
 				GUICtrlSetState($hDelay[2], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[2], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[2]) == "Self-Defense" Then
@@ -830,7 +851,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[3], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[3], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[3]) == "Protection" Then
-				GUICtrlSetData($hSkillType[3], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
+				GUICtrlSetData($hSkillType[3], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", "ProtAlly")
 				GUICtrlSetState($hDelay[3], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[3], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[3]) == "Self-Defense" Then
@@ -844,7 +865,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[4], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[4], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[4]) == "Protection" Then
-				GUICtrlSetData($hSkillType[4], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
+				GUICtrlSetData($hSkillType[4], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", "ProtAlly")
 				GUICtrlSetState($hDelay[4], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[4], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[4]) == "Self-Defense" Then
@@ -858,7 +879,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[5], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[5], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[5]) == "Protection" Then
-				GUICtrlSetData($hSkillType[5], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
+				GUICtrlSetData($hSkillType[5], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", "ProtAlly")
 				GUICtrlSetState($hDelay[5], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[5], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[5]) == "Self-Defense" Then
@@ -872,7 +893,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[6], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[6], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[6]) == "Protection" Then
-				GUICtrlSetData($hSkillType[6], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
+				GUICtrlSetData($hSkillType[6], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", "ProtAlly")
 				GUICtrlSetState($hDelay[6], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[6], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[6]) == "Self-Defense" Then
@@ -886,7 +907,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[7], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[7], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[7]) == "Protection" Then
-				GUICtrlSetData($hSkillType[7], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
+				GUICtrlSetData($hSkillType[7], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", "ProtAlly")
 				GUICtrlSetState($hDelay[7], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[7], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[7]) == "Self-Defense" Then
@@ -900,7 +921,7 @@ Func EventHandler()
 				GUICtrlSetState($hDelay[8], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[8], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[8]) == "Protection" Then
-				GUICtrlSetData($hSkillType[8], "|SpellAlly|SpellOtherAlly|Veil|Heal|Fuse", "SpellAlly")
+				GUICtrlSetData($hSkillType[8], "|ProtAlly|ProtOtherAlly|HealAlly|HealOtherAlly|Veil|Fuse", "ProtAlly")
 				GUICtrlSetState($hDelay[8], $GUI_DISABLE)
 				GUICtrlSetState($hDistance[8], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[8]) == "Self-Defense" Then
