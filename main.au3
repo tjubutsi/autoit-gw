@@ -63,7 +63,7 @@ Global $fFuseTimer = 0
 
 Global $sSkillsList[9]
 Global $aSkillsChecked[9]
-Global $sBullsList = ",237,332,843,2808,"
+Global $sBullsList = ",237,332,843,853,2808,"
 Global $sAntiRupt = "399,1726,409,426,61,3185,932,57,1053,1342,1344,860,408,1992,5,25,953,24,803,1994,931,23,"
 Global $sFullList = $sBullsList & $sAntiRupt
 Global $aHotkeys[9] = ["", "q", "w", "e", "r", "a", "s", "d", "f"]
