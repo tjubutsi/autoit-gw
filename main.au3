@@ -37,7 +37,7 @@ HotKeySet("^g", "ChangeStateOfSkill7")
 HotKeySet("^b", "ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision12", 600, 400)
+Global $hGUI = GUICreate("GWA revision13", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -46,7 +46,7 @@ Global $bLockMode = False
 Global $bTargetMode = False
 Global $bMarkedMode = False
 Global $bInterruptingPaused = False
-Global $bAntiRuptEnabled = False
+Global $bAntiRuptEnabled = True
 
 Global $bBusy = False
 Global $fMyTimer = 0
@@ -1327,18 +1327,18 @@ EndFunc   ;==>ChangeStateOfSkill8
 
 Func PauseOnOff()
 	$bInterruptingPaused = Not $bInterruptingPaused
-	If $bInterruptingPaused = 1 Then
+	If $bInterruptingPaused == True Then
 		ToolTip("PAUSED", 0, 0, "Information", 1)
-	ElseIf $bInterruptingPaused = 0 Then
+	ElseIf $bInterruptingPaused == False Then
 		ToolTip("UNPAUSED", 0, 0, "Information", 1)
 	EndIf
 EndFunc   ;==>PauseOnOff
 
 Func AntiRuptOnOff()
 	$bAntiRuptEnabled = Not $bAntiRuptEnabled
-	If $bAntiRuptEnabled = 1 Then
+	If $bAntiRuptEnabled == True Then
 		ToolTip("ANTI RUPT ENABLED", 0, 0, "Information", 1)
-	ElseIf $bAntiRuptEnabled = 0 Then
+	ElseIf $bAntiRuptEnabled == False Then
 		ToolTip("ANTI RUPT DISABLED", 0, 0, "Information", 1)
 	EndIf
 EndFunc   ;==>AntiRuptOnOff
