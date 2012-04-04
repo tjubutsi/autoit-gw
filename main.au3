@@ -315,23 +315,8 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 									;~ check type of a skill
 									Switch $aSkillType[$i]
 										Case "ProtAlly"
-											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
-												$bBusy = True ;Ready
-												If ($fExtraTime - $fCastingTime) >= 0 Then
-													$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
-													Sleep($fExtraTime)
-												EndIf
-												ChangeTarget($objTarget)
-												$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-												ToolTip($sWarning, 1000, 600)
-												Sleep(25)
-												Send($aHotkeys[$i])
-											EndIf
-											$bBusy = False
-											Return
-										Case "ProtOtherAlly"
-											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+											;~ check if it's possible to use prot in time
+											If $fExtraTime >= $fCastingTime Then
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
 													If ($fExtraTime - $fCastingTime) >= 0 Then
@@ -344,6 +329,27 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													ToolTip($sWarning, 1000, 600)
 													Sleep(25)
 													Send($aHotkeys[$i])
+												EndIf
+											EndIf
+											$bBusy = False
+											Return
+										Case "ProtOtherAlly"
+											If DllStructGetData($objTarget, 'ID') <> GetMyID() Then
+												;~ check if it's possible to use prot in time
+												If $fExtraTime >= $fCastingTime Then
+													If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+														$bBusy = True ;Ready
+														If ($fExtraTime - $fCastingTime) >= 0 Then
+															$fExtraTime = Random(0, ($fExtraTime - $fCastingTime) * .65, 1)
+															Sleep($fExtraTime)
+														EndIf
+														ChangeTarget($objTarget)
+														$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+														Sleep(25)
+														Send($aHotkeys[$i])
+													EndIf
 												EndIf
 											EndIf
 											$bBusy = False
