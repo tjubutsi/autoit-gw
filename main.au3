@@ -18,26 +18,26 @@ Initialize(WinGetProcess("Guild Wars"))
 AutoItSetOption("GUIOnEventMode", 1)
 AutoItSetOption("TrayIconDebug", 1)
 
-HotKeySet("!e", "OnOff")
-HotKeySet("!x", "Reset")
-HotKeySet("!w", "LockOnOff")
-HotKeySet("!a", "TargetOnOff")
-HotKeySet("!v", "MarksOnOff")
-HotKeySet("!c", "MarkTarget")
-HotKeySet("!q", "PauseOnOff")
-HotKeySet("!{F1}", "AntiRuptOnOff")
-HotKeySet("!z", "ShowEnemyParty")
-HotKeySet("^1", "ChangeStateOfSkill1")
-HotKeySet("^2", "ChangeStateOfSkill2")
-HotKeySet("^3", "ChangeStateOfSkill3")
-HotKeySet("^4", "ChangeStateOfSkill4")
-HotKeySet("^5", "ChangeStateOfSkill5")
-HotKeySet("^t", "ChangeStateOfSkill6")
-HotKeySet("^g", "ChangeStateOfSkill7")
-HotKeySet("^b", "ChangeStateOfSkill8")
+HotKeySet("!e", "_OnOff")
+HotKeySet("!x", "_Reset")
+HotKeySet("!w", "_LockOnOff")
+HotKeySet("!a", "_TargetOnOff")
+HotKeySet("!v", "_MarksOnOff")
+HotKeySet("!c", "_MarkTarget")
+HotKeySet("!q", "_PauseOnOff")
+HotKeySet("!{F1}", "_AntiRuptOnOff")
+HotKeySet("!z", "_ShowEnemyParty")
+HotKeySet("^1", "_ChangeStateOfSkill1")
+HotKeySet("^2", "_ChangeStateOfSkill2")
+HotKeySet("^3", "_ChangeStateOfSkill3")
+HotKeySet("^4", "_ChangeStateOfSkill4")
+HotKeySet("^5", "_ChangeStateOfSkill5")
+HotKeySet("^t", "_ChangeStateOfSkill6")
+HotKeySet("^g", "_ChangeStateOfSkill7")
+HotKeySet("^b", "_ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision13", 600, 400)
+Global $hGUI = GUICreate("GWA revision14", 600, 400)
 Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -602,7 +602,7 @@ Func EventHandler()
 		Case $GUI_EVENT_CLOSE
 			Exit
 		Case $hOnOff
-			OnOff()
+			_OnOff()
 		Case $hClear
 			Select
 				Case GUICtrlRead($hSkills[1]) <> "" Or GUICtrlRead($hSkills[2]) <> "" Or GUICtrlRead($hSkills[3]) <> "" Or GUICtrlRead($hSkills[4]) <> "" Or GUICtrlRead($hSkills[5]) <> "" Or GUICtrlRead($hSkills[6]) <> "" Or GUICtrlRead($hSkills[7]) <> "" Or GUICtrlRead($hSkills[8]) <> ""
@@ -784,45 +784,11 @@ Func EventHandler()
 			GUICtrlSetState($hBackfire[GUICtrlRead($hTab) + 1], IniRead($hFile, GUICtrlRead($hSkill), "Backfire", ""))
 			GUICtrlSetState($hShame[GUICtrlRead($hTab) + 1], IniRead($hFile, GUICtrlRead($hSkill), "Shame", ""))
 		Case $hLockMode
-			If GUICtrlRead($hLockMode) == $GUI_CHECKED Then
-				$bLockMode = True
-				$bTargetMode = False
-				$bMarkedMode = False
-				GUICtrlSetState($hTargetMode, $GUI_UNCHECKED)
-				ToolTip("Switched to LOCK Mode", 0, 0, "Information", 1)
-			ElseIf GUICtrlRead($hLockMode) = $GUI_UNCHECKED Then
-				$bLockMode = False
-				$bTargetMode = False
-				$bMarkedMode = False
-				ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
-			EndIf
+			_LockOnOff()
 		Case $hTargetMode
-			If GUICtrlRead($hTargetMode) == $GUI_CHECKED Then
-				$bLockMode = False
-				$bTargetMode = True
-				$bMarkedMode = False
-				GUICtrlSetState($hLockMode, $GUI_UNCHECKED)
-				ToolTip("Switched to TARGET Mode", 0, 0, "Information", 1)
-			ElseIf GUICtrlRead($hTargetMode) = $GUI_UNCHECKED Then
-				$bLockMode = False
-				$bTargetMode = False
-				$bMarkedMode = False
-				ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
-			EndIf
+			_TargetOnOff()
 		Case $hMarkedMode
-			If GUICtrlRead($hMarkedMode) == $GUI_CHECKED Then
-				$bLockMode = False
-				$bTargetMode = False
-				$bMarkedMode = True
-				GUICtrlSetState($hLockMode, $GUI_UNCHECKED)
-				GUICtrlSetState($hTargetMode, $GUI_UNCHECKED)
-				ToolTip("Switched to MARKED Mode", 0, 0, "Information", 1)
-			ElseIf GUICtrlRead($hMarkedMode) == $GUI_UNCHECKED Then
-				$bLockMode = False
-				$bTargetMode = False
-				$bMarkedMode = False
-				ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
-			EndIf
+			_MarksOnOff()
 		Case $hFunction[1]
 			If GUICtrlRead($hFunction[1]) == "Interrupt" Then
 				GUICtrlSetData($hSkillType[1], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
@@ -960,7 +926,7 @@ EndFunc   ;==>UpdateSkills
 #endregion event_handlers
 
 #region on_off
-Func OnOff()
+Func _OnOff()
 	$bEnabled = Not $bEnabled
 	If $bEnabled Then
 		ToolTip("ON", 0, 0, "Information", 1)
@@ -1026,7 +992,7 @@ Func OnOff()
 		GUICtrlSetState($hSkill, $GUI_ENABLE)
 		SetEvent("", "", "", "", "Load")
 	EndIf
-EndFunc   ;==>OnOff
+EndFunc   ;==>_OnOff
 
 Func GetSkillsIDs($sList)
 	Local $sReturnString = ","
@@ -1105,11 +1071,13 @@ EndFunc   ;==>CheckHarmfulEffects
 #endregion helper_functions
 
 #region targeting_functions
-Func LockOnOff()
-	$bLockMode = Not $bLockMode
+Func _LockOnOff()
 
+	$bLockMode = Not $bLockMode
 	$bTargetMode = False
 	GUICtrlSetState($hTargetMode, $GUI_UNCHECKED)
+	$bMarkedMode = False
+	GUICtrlSetState($hMarkedMode, $GUI_UNCHECKED)
 
 	If $bLockMode Then
 		GUICtrlSetState($hLockMode, $GUI_CHECKED)
@@ -1118,9 +1086,10 @@ Func LockOnOff()
 		GUICtrlSetState($hLockMode, $GUI_UNCHECKED)
 		ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>LockOnOff
+EndFunc   ;==>_LockOnOff
 
-Func TargetOnOff()
+Func _TargetOnOff()
+
 	Local $objOwnInfo = GetAgentByID(-2)
 	Local $objTarget = GetAgentByID(-1)
 
@@ -1128,7 +1097,9 @@ Func TargetOnOff()
 		$bTargetMode = Not $bTargetMode
 		$bLockMode = False
 		GUICtrlSetState($hLockMode, $GUI_UNCHECKED)
-		If $bTargetMode Then
+		$bMarkedMode = False
+		GUICtrlSetState($hMarkedMode, $GUI_UNCHECKED)
+		If $bTargetMode == True Then
 			GUICtrlSetState($hTargetMode, $GUI_CHECKED)
 			$iTargeted = DllStructGetData($objTarget, 'ID')
 			ToolTip(FormatName($objTarget), 0, 0, "Target Info", 1)
@@ -1137,9 +1108,9 @@ Func TargetOnOff()
 			ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
 		EndIf
 	EndIf
-EndFunc   ;==>TargetOnOff
+EndFunc   ;==>_TargetOnOff
 
-Func MarksOnOff()
+Func _MarksOnOff()
 	$bMarkedMode = Not $bMarkedMode
 	$sMarkedTargets = ","
 
@@ -1156,9 +1127,9 @@ Func MarksOnOff()
 		ToolTip("Switched to NORMAL mode", 0, 0, "Information", 1)
 	EndIf
 	Return
-EndFunc
+EndFunc   ;==>_MarksOnOff
 
-Func MarkTarget()
+Func _MarkTarget()
 	Local $objOwnInfo = GetAgentByID(-2)
 	Local $objTarget = GetAgentByID(-1)
 
@@ -1167,7 +1138,7 @@ Func MarkTarget()
 		ToolTip(FormatName($objTarget), 0, 0, "Target Info", 1)
 	EndIf
 	Return
-EndFunc
+EndFunc   ;==>_MarkTarget
 
 Func FormatName($aAgent)
 	If IsDllStruct($aAgent) == 0 Then $aAgent = GetAgentByID($aAgent)
@@ -1228,12 +1199,12 @@ Func FormatName($aAgent)
 			$sString &= StringReplace(GetAgentName($aAgent), "Corpse of ", "")
 		EndIf
 	Return $sString
-EndFunc
+EndFunc   ;==>FormatName
 #endregion targeting_functions
 
 
 #region change_state_of_skills
-Func ChangeStateOfSkill1()
+Func _ChangeStateOfSkill1()
 	If GUICtrlRead($hUseSkills[1]) == $GUI_CHECKED Then
 		$aSkillsChecked[1] = "Off"
 		GUICtrlSetState($hUseSkills[1], $GUI_UNCHECKED)
@@ -1243,9 +1214,9 @@ Func ChangeStateOfSkill1()
 		GUICtrlSetState($hUseSkills[1], $GUI_CHECKED)
 		ToolTip("SKILL 1 ENABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>ChangeStateOfSkill1
+EndFunc   ;==>_ChangeStateOfSkill1
 
-Func ChangeStateOfSkill2()
+Func _ChangeStateOfSkill2()
 	If GUICtrlRead($hUseSkills[2]) == $GUI_CHECKED Then
 		$aSkillsChecked[2] = "Off"
 		GUICtrlSetState($hUseSkills[2], $GUI_UNCHECKED)
@@ -1255,9 +1226,9 @@ Func ChangeStateOfSkill2()
 		GUICtrlSetState($hUseSkills[2], $GUI_CHECKED)
 		ToolTip("SKILL 2 ENABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>ChangeStateOfSkill2
+EndFunc   ;==>_ChangeStateOfSkill2
 
-Func ChangeStateOfSkill3()
+Func _ChangeStateOfSkill3()
 	If GUICtrlRead($hUseSkills[3]) == $GUI_CHECKED Then
 		$aSkillsChecked[3] = "Off"
 		GUICtrlSetState($hUseSkills[3], $GUI_UNCHECKED)
@@ -1267,9 +1238,9 @@ Func ChangeStateOfSkill3()
 		GUICtrlSetState($hUseSkills[3], $GUI_CHECKED)
 		ToolTip("SKILL 3 ENABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>ChangeStateOfSkill3
+EndFunc   ;==>_ChangeStateOfSkill3
 
-Func ChangeStateOfSkill4()
+Func _ChangeStateOfSkill4()
 	If GUICtrlRead($hUseSkills[4]) == $GUI_CHECKED Then
 		$aSkillsChecked[4] = "Off"
 		GUICtrlSetState($hUseSkills[4], $GUI_UNCHECKED)
@@ -1279,9 +1250,9 @@ Func ChangeStateOfSkill4()
 		GUICtrlSetState($hUseSkills[4], $GUI_CHECKED)
 		ToolTip("SKILL 4 ENABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>ChangeStateOfSkill4
+EndFunc   ;==>_ChangeStateOfSkill4
 
-Func ChangeStateOfSkill5()
+Func _ChangeStateOfSkill5()
 	If GUICtrlRead($hUseSkills[5]) == $GUI_CHECKED Then
 		$aSkillsChecked[5] = "Off"
 		GUICtrlSetState($hUseSkills[5], $GUI_UNCHECKED)
@@ -1291,9 +1262,9 @@ Func ChangeStateOfSkill5()
 		GUICtrlSetState($hUseSkills[5], $GUI_CHECKED)
 		ToolTip("SKILL 5 ENABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>ChangeStateOfSkill5
+EndFunc   ;==>_ChangeStateOfSkill5
 
-Func ChangeStateOfSkill6()
+Func _ChangeStateOfSkill6()
 	If GUICtrlRead($hUseSkills[6]) == $GUI_CHECKED Then
 		$aSkillsChecked[6] = "Off"
 		GUICtrlSetState($hUseSkills[6], $GUI_UNCHECKED)
@@ -1303,9 +1274,9 @@ Func ChangeStateOfSkill6()
 		GUICtrlSetState($hUseSkills[6], $GUI_CHECKED)
 		ToolTip("SKILL 6 ENABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>ChangeStateOfSkill6
+EndFunc   ;==>_ChangeStateOfSkill6
 
-Func ChangeStateOfSkill7()
+Func _ChangeStateOfSkill7()
 	If GUICtrlRead($hUseSkills[7]) == $GUI_CHECKED Then
 		$aSkillsChecked[7] = "Off"
 		GUICtrlSetState($hUseSkills[7], $GUI_UNCHECKED)
@@ -1315,9 +1286,9 @@ Func ChangeStateOfSkill7()
 		GUICtrlSetState($hUseSkills[7], $GUI_CHECKED)
 		ToolTip("SKILL 7 ENABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>ChangeStateOfSkill7
+EndFunc   ;==>_ChangeStateOfSkill7
 
-Func ChangeStateOfSkill8()
+Func _ChangeStateOfSkill8()
 	If GUICtrlRead($hUseSkills[8]) == $GUI_CHECKED Then
 		$aSkillsChecked[8] = "Off"
 		GUICtrlSetState($hUseSkills[8], $GUI_UNCHECKED)
@@ -1327,27 +1298,27 @@ Func ChangeStateOfSkill8()
 		GUICtrlSetState($hUseSkills[8], $GUI_CHECKED)
 		ToolTip("SKILL 8 ENABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>ChangeStateOfSkill8
+EndFunc   ;==>_ChangeStateOfSkill8
 #endregion change_state_of_skills
 
 
-Func PauseOnOff()
+Func _PauseOnOff()
 	$bInterruptingPaused = Not $bInterruptingPaused
 	If $bInterruptingPaused == True Then
 		ToolTip("PAUSED", 0, 0, "Information", 1)
 	ElseIf $bInterruptingPaused == False Then
 		ToolTip("UNPAUSED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>PauseOnOff
+EndFunc   ;==>_PauseOnOff
 
-Func AntiRuptOnOff()
+Func _AntiRuptOnOff()
 	$bAntiRuptEnabled = Not $bAntiRuptEnabled
 	If $bAntiRuptEnabled == True Then
 		ToolTip("ANTI RUPT ENABLED", 0, 0, "Information", 1)
 	ElseIf $bAntiRuptEnabled == False Then
 		ToolTip("ANTI RUPT DISABLED", 0, 0, "Information", 1)
 	EndIf
-EndFunc   ;==>AntiRuptOnOff
+EndFunc   ;==>_AntiRuptOnOff
 
 Func GetTeam($aTeam)
 	Local $lTeamNumber = $aTeam
@@ -1371,9 +1342,9 @@ Func GetTeam($aTeam)
 	Next
 	_ArraySort($lTeam, 0, 1, 0, 1)
 	Return $lTeam
-EndFunc
+EndFunc   ;==>GetTeam
 
-Func ShowEnemyParty()
+Func _ShowEnemyParty()
 	If $bEnabled == True Then
 		Local $objOwnInfo = GetAgentByID(-2)
 		Local $aEnemyPartyInfo
@@ -1391,11 +1362,11 @@ Func ShowEnemyParty()
 		ToolTip($sString, 0, 0, "Enemy Party Info", 1)
 	EndIf
 	Return
-EndFunc
+EndFunc   ;==>_ShowEnemyParty
 
-Func Reset()
+Func _Reset()
 	ToolTip("")
-EndFunc   ;==>Reset
+EndFunc   ;==>_Reset
 
 GUISetBkColor(0x999999)
 UpdateSkillSets()
