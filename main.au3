@@ -26,6 +26,7 @@ HotKeySet("!v", "_MarksOnOff")
 HotKeySet("!c", "_MarkTarget")
 HotKeySet("!q", "_PauseOnOff")
 HotKeySet("!{F1}", "_AntiRuptOnOff")
+HotKeySet("!{F2}", "_RuptEverythingOnOff")
 HotKeySet("!z", "_ShowEnemyParty")
 HotKeySet("^1", "_ChangeStateOfSkill1")
 HotKeySet("^2", "_ChangeStateOfSkill2")
@@ -37,9 +38,9 @@ HotKeySet("^g", "_ChangeStateOfSkill7")
 HotKeySet("^b", "_ChangeStateOfSkill8")
 
 #region gui
-Global $hGUI = GUICreate("GWA revision14", 600, 400)
-Global $hFileSets = @ScriptDir & "\config\skillsSets.ini"
-Global $hFile = @ScriptDir & "\config\skills.ini"
+Global Const $hGUI = GUICreate("GWA revision15", 600, 400)
+Global Const $hFileSets = @ScriptDir & "\config\skillsSets.ini"
+Global Const $hFile = @ScriptDir & "\config\skills.ini"
 
 Global $bEnabled = False
 Global $bLockMode = False
@@ -47,6 +48,7 @@ Global $bTargetMode = False
 Global $bMarkedMode = False
 Global $bInterruptingPaused = False
 Global $bAntiRuptEnabled = True
+Global $bRuptEverythingEnabled = False
 
 Global $bBusy = False
 Global $fMyTimer = 0
@@ -63,10 +65,10 @@ Global $fFuseTimer = 0
 
 Global $sSkillsList[9]
 Global $aSkillsChecked[9]
-Global $sBullsList = ",237,332,843,853,2808,"
-Global $sAntiRupt = "399,1726,409,426,61,3185,932,57,1053,1342,1344,860,408,1992,5,25,953,24,803,1994,931,23,"
+Global Const $sBullsList = ",237,332,843,853,2808,"
+Global Const $sAntiRupt = "399,1726,409,426,61,3185,932,57,1053,1342,1344,860,408,1992,5,25,953,24,803,1994,931,23,"
 Global $sFullList = $sBullsList & $sAntiRupt
-Global $aHotkeys[9] = ["", "q", "w", "e", "r", "a", "s", "d", "f"]
+Global Const $aHotkeys[9] = ["", "q", "w", "e", "r", "a", "s", "d", "f"]
 
 Global $iTargeted = 0
 Global $sMarkedTargets = ","
@@ -188,9 +190,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 		$fMyAftercast = 1000 * DllStructGetData($objSkill, 'Aftercast')
 		Return
 	EndIf
-	;~ check if skill that's being used is on the list
-	If StringInStr($sFullList, "," & String(DllStructGetData($objSkill, 'ID')) & ",") == 0 Then
-		Return
+	If $bRuptEverythingEnabled == False Then
+		;~ check if skill that's being used is on the list
+		If StringInStr($sFullList, "," & String(DllStructGetData($objSkill, 'ID')) & ",") == 0 Then
+			Return
+		EndIf
 	EndIf
 	;~ check if agent is enemy
 	If DllStructGetData($objCaster, 'Allegiance') == 0x3 Then
@@ -230,8 +234,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 									;~ check if caster is on your current target, your locked target or one of your marked targets
 									If (DllStructGetData($objCaster, 'ID') == $iTarget) Or (DllStructGetData($objCaster, 'ID') == $iTargeted) _
 									Or StringInStr($sMarkedTargets, "," & String(DllStructGetData($objCaster, 'ID')) & ",") <> 0 Then
-										;~ check if skill is on right list
-										If StringInStr($sSkillsList[$i], "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
+										If $bRuptEverythingEnabled == True Then
 											$iConfirmation = DllStructGetData($objSkill, 'ID')
 											;~ check if interrupt is attack skill
 											If $aSkillType[$i] == "Attack Skill" Then
@@ -264,6 +267,42 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											EndIf
 											$bBusy = False
 											Return
+										Else
+											;~ check if skill is on right list
+											If StringInStr($sSkillsList[$i], "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
+												$iConfirmation = DllStructGetData($objSkill, 'ID')
+												;~ check if interrupt is attack skill
+												If $aSkillType[$i] == "Attack Skill" Then
+													If $aActivation[$i] > 0 Then
+														$fCastingTime = $aActivation[$i] * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
+													Else
+														$fCastingTime = DllStructGetData($objOwnInfo, 'AttackSpeed') * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
+													EndIf
+												;~ check if interrupt is signet
+												ElseIf $aSkillType[$i] == "Signet" Then
+													$fCastingTime = $aActivation[$i] * (1 - 0.03 * GetAttributeByID(0, True))
+												;~ spell usage & fast casting time
+												Else
+													$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
+												EndIf
+												;~ calculate remaining time after ping, your spell, and time processing the code
+												$fExtraTime = ($fTime * 1000 - (TimerDiff($fProcessingTime) + $fCastRemaining + (1.3 * GetPing())))
+												;~ check if it's possible to rupt while waiting the min reaction time
+												If $fExtraTime >= ($fCastingTime + $aDelay[$i]) Then
+													If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
+														$fExtraTime = Random($aDelay[$i] - TimerDiff($fProcessingTime), ($fExtraTime - $fCastingTime) * .8, 1)
+														$bBusy = True ;Ready
+														ChangeTarget($objCaster)
+														Sleep($fExtraTime+10)
+														$objConfirmation = GetAgentByID(-1)
+														If DllStructGetData($objConfirmation, 'Skill') == $iConfirmation Then
+															Send($aHotkeys[$i])
+														EndIf
+													EndIf
+												EndIf
+												$bBusy = False
+												Return
+											EndIf
 										EndIf
 									EndIf
 								;~ if all targets are viable then
@@ -1314,11 +1353,20 @@ EndFunc   ;==>_PauseOnOff
 Func _AntiRuptOnOff()
 	$bAntiRuptEnabled = Not $bAntiRuptEnabled
 	If $bAntiRuptEnabled == True Then
-		ToolTip("ANTI RUPT ENABLED", 0, 0, "Information", 1)
+		ToolTip("ANTI RUPT MODE ENABLED", 0, 0, "Information", 1)
 	ElseIf $bAntiRuptEnabled == False Then
-		ToolTip("ANTI RUPT DISABLED", 0, 0, "Information", 1)
+		ToolTip("ANTI RUPT MODE DISABLED", 0, 0, "Information", 1)
 	EndIf
 EndFunc   ;==>_AntiRuptOnOff
+
+Func _RuptEverythingOnOff()
+	$bRuptEverythingEnabled = Not $bRuptEverythingEnabled
+	If $bRuptEverythingEnabled == True Then
+		ToolTip("RUPT EVERYTHING MODE ENABLED", 0, 0, "Information", 1)
+	ElseIf $bRuptEverythingEnabled == False Then
+		ToolTip("RUPT EVERYTHING MODE DISABLED", 0, 0, "Information", 1)
+	EndIf
+EndFunc   ;==>_RuptEverythingOnOff
 
 Func GetTeam($aTeam)
 	Local $lTeamNumber = $aTeam
