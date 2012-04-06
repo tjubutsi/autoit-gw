@@ -38,7 +38,7 @@ HotKeySet("^g", "_ChangeStateOfSkill7")
 HotKeySet("^b", "_ChangeStateOfSkill8")
 
 #region gui
-Global Const $hGUI = GUICreate("GWA revision17", 600, 400)
+Global Const $hGUI = GUICreate("GWA revision18", 600, 400)
 Global Const $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global Const $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -1199,6 +1199,7 @@ Func _TargetOnOff()
 			ToolTip(FormatName($objTarget), 0, 0, "Target Info", 1)
 		Else
 			GUICtrlSetState($hTargetMode, $GUI_UNCHECKED)
+			$iTargeted = 0
 			ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
 		EndIf
 	EndIf
