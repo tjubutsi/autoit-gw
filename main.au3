@@ -38,7 +38,7 @@ HotKeySet("^g", "_ChangeStateOfSkill7")
 HotKeySet("^b", "_ChangeStateOfSkill8")
 
 #region gui
-Global Const $hGUI = GUICreate("GWA revision16", 600, 400)
+Global Const $hGUI = GUICreate("GWA revision17", 600, 400)
 Global Const $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global Const $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -56,6 +56,9 @@ Global $bCasting = False
 Global $fCastRemaining = 0
 Global $fMyActivation = 0
 Global $fMyAftercast = 0
+Global $bDiversion = False
+Global $fDiversionTimer = 0
+Global $iDiversionedID = 0
 Global $fMovementTimer = 0
 Global $fMovementActivation = 0
 
@@ -173,6 +176,27 @@ GUICtrlSetOnEvent(-1, "EventHandler")
 #endregion gui
 
 #region main_functions
+Func CheckDiversion($objCaster, $objTarget, $objSkill)
+	If $bDiversion == True Then
+		;~ if the person under diversion uses a skill, clear variables
+		If DllStructGetData($objCaster, 'ID') == $iDiversionedID Then
+			$bDiversion = False
+			$iDiversionedID = 0
+			$fDiversionTimer = 0
+		EndIf
+	EndIf
+	;~ check if casted spell is diversion
+	If DllStructGetData($objSkill, 'ID') == 30 Then
+		;~ check if it was casted by non-enemy
+		If DllStructGetData($objCaster, 'Allegiance') <> 0x3 Then
+			;~ set variables
+			$bDiversion = True
+			$iDiversionedID = DllStructGetData($objTarget, 'ID')
+			$fDiversionTimer = TimerInit()
+		EndIf
+	EndIf
+EndFunc
+
 Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 	;~ make sure its turned on
 	If $bEnabled == 0 Then
@@ -195,6 +219,10 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 		If StringInStr($sFullList, "," & String(DllStructGetData($objSkill, 'ID')) & ",") == 0 Then
 			Return
 		EndIf
+	EndIf
+	;~ check if target is diversioned
+	If $iDiversionedID == DllStructGetData($objCaster, 'ID') Then
+		Return
 	EndIf
 	;~ check if agent is enemy
 	If DllStructGetData($objCaster, 'Allegiance') == 0x3 Then
@@ -1025,7 +1053,7 @@ Func _OnOff()
 		Next
 
 		SaveDataToVars()
-		SetEvent("CheckRupt", "", "", "", "Load")
+		SetEvent("CheckRupt", "", "CheckDiversion", "", "Load")
 	Else
 		GUICtrlSetData($hOnOff, "Enable")
 		ToolTip("OFF", 0, 0, "Information", 1)
@@ -1454,6 +1482,13 @@ While 1
 		If $fCastRemaining <= 0 Then
 			$fCastRemaining = 0
 			$bCasting = False
+		EndIf
+	EndIf
+	If $bDiversion == True Then
+		If TimerDiff($fDiversionTimer) > 5750 Then
+			$bDiversion = False
+			$iDiversionedID = 0
+			$fDiversionTimer = 0
 		EndIf
 	EndIf
 	Sleep(20)
