@@ -38,7 +38,7 @@ HotKeySet("^g", "_ChangeStateOfSkill7")
 HotKeySet("^b", "_ChangeStateOfSkill8")
 
 #region gui
-Global Const $hGUI = GUICreate("GWA revision15", 600, 400)
+Global Const $hGUI = GUICreate("GWA revision16", 600, 400)
 Global Const $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global Const $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -128,7 +128,7 @@ For $i = 1 To 8 Step 1
 	GUICtrlSetOnEvent(-1, "EventHandler")
 
 	$hSkillType[$i] = GUICtrlCreateCombo("", 20, 205, 100, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
-	GUICtrlSetData(-1, "SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+	GUICtrlSetData(-1, "SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 
 	$hLabelDelay[$i] = GUICtrlCreateLabel("Delay:", 140, 182)
 	$hDelay[$i] = GUICtrlCreateInput("", 200, 180, 45, 20)
@@ -178,7 +178,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 	If $bEnabled == 0 Then
 		Return
 	EndIf
-	Local $fDistance, $fCastingTime, $fExtraTime, $objConfirmation, $iConfirmation, $sWarning
+	Local $fDistance, $fCastingTime, $fExtraTime, $objConfirmation, $iConfirmation, $sWarning, $iType
 	;~ start timer to calculate processing time
 	Local $fProcessingTime = TimerInit()
 	;~ check if i'm the one casting, note it for later
@@ -236,20 +236,29 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 									Or StringInStr($sMarkedTargets, "," & String(DllStructGetData($objCaster, 'ID')) & ",") <> 0 Then
 										If $bRuptEverythingEnabled == True Then
 											$iConfirmation = DllStructGetData($objSkill, 'ID')
-											;~ check if interrupt is attack skill
-											If $aSkillType[$i] == "Attack Skill" Then
-												If $aActivation[$i] > 0 Then
-													$fCastingTime = $aActivation[$i] * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
-												Else
-													$fCastingTime = DllStructGetData($objOwnInfo, 'AttackSpeed') * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
-												EndIf
-											;~ check if interrupt is signet
-											ElseIf $aSkillType[$i] == "Signet" Then
-												$fCastingTime = $aActivation[$i] * (1 - 0.03 * GetAttributeByID(0, True))
-											;~ spell usage & fast casting time
-											Else
-												$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
-											EndIf
+											;~ check type of a skill
+											Switch $aSkillType[$i]
+												;~ check if interrupt is attack skill
+												Case "Attack Skill"
+													If $aActivation[$i] > 0 Then
+														$fCastingTime = $aActivation[$i] * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
+													Else
+														$fCastingTime = DllStructGetData($objOwnInfo, 'AttackSpeed') * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
+													EndIf
+												;~ check if interrupt is signet
+												Case "Signet"
+													$fCastingTime = $aActivation[$i] * (1 - 0.03 * GetAttributeByID(0, True))
+												;~ check if interrupt is spell and can interrupt only spells and chants
+												Case "SpellEnemy"
+													$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
+													$iType = DllStructGetData($objSkill, 'Type')
+													If $iType == 7 Or $iType == 10 Or $iType == 12 Or $iType == 14 Or $iType == 19 Or $iType == 21 Or $iType == 22 Or $iType == 26 Or $iType == 28 Then
+														ContinueLoop
+													EndIf
+												;~ check if interrupt is spell and can interrupt every skill
+												Case "SkillEnemy"
+													$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
+											EndSwitch
 											;~ calculate remaining time after ping, your spell, and time processing the code
 											$fExtraTime = ($fTime * 1000 - (TimerDiff($fProcessingTime) + $fCastRemaining + (1.3 * GetPing())))
 											;~ check if it's possible to rupt while waiting the min reaction time
@@ -271,20 +280,29 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											;~ check if skill is on right list
 											If StringInStr($sSkillsList[$i], "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
 												$iConfirmation = DllStructGetData($objSkill, 'ID')
-												;~ check if interrupt is attack skill
-												If $aSkillType[$i] == "Attack Skill" Then
-													If $aActivation[$i] > 0 Then
-														$fCastingTime = $aActivation[$i] * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
-													Else
-														$fCastingTime = DllStructGetData($objOwnInfo, 'AttackSpeed') * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
-													EndIf
-												;~ check if interrupt is signet
-												ElseIf $aSkillType[$i] == "Signet" Then
-													$fCastingTime = $aActivation[$i] * (1 - 0.03 * GetAttributeByID(0, True))
-												;~ spell usage & fast casting time
-												Else
-													$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
-												EndIf
+												;~ check type of a skill
+												Switch $aSkillType[$i]
+													;~ check if interrupt is attack skill
+													Case "Attack Skill"
+														If $aActivation[$i] > 0 Then
+															$fCastingTime = $aActivation[$i] * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
+														Else
+															$fCastingTime = DllStructGetData($objOwnInfo, 'AttackSpeed') * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
+														EndIf
+													;~ check if interrupt is signet
+													Case "Signet"
+														$fCastingTime = $aActivation[$i] * (1 - 0.03 * GetAttributeByID(0, True))
+													;~ check if interrupt is spell and can interrupt only spells and chants
+													Case "SpellEnemy"
+														$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
+														$iType = DllStructGetData($objSkill, 'Type')
+														If $iType == 7 Or $iType == 10 Or $iType == 12 Or $iType == 14 Or $iType == 19 Or $iType == 21 Or $iType == 22 Or $iType == 26 Or $iType == 28 Then
+															ContinueLoop
+														EndIf
+													;~ check if interrupt is spell and can interrupt every skill
+													Case "SkillEnemy"
+														$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
+												EndSwitch
 												;~ calculate remaining time after ping, your spell, and time processing the code
 												$fExtraTime = ($fTime * 1000 - (TimerDiff($fProcessingTime) + $fCastRemaining + (1.3 * GetPing())))
 												;~ check if it's possible to rupt while waiting the min reaction time
@@ -309,20 +327,29 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 								Else
 									If StringInStr($sSkillsList[$i], "," & String(DllStructGetData($objSkill, 'ID')) & ",") Then
 										$iConfirmation = DllStructGetData($objSkill, 'ID')
-										;~ check if interrupt is attack skill
-										If $aSkillType[$i] == "Attack Skill" Then
-											If $aActivation[$i] > 0 Then
-												$fCastingTime = $aActivation[$i] * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
-											Else
-												$fCastingTime = DllStructGetData($objOwnInfo, 'AttackSpeed') * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
-											EndIf
-										;~ check if interrupt is signet
-										ElseIf $aSkillType[$i] == "Signet" Then
-											$fCastingTime = $aActivation[$i] * (1 - 0.03 * GetAttributeByID(0, True))
-										;~ spell usage & fast casting time
-										Else
-											$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
-										EndIf
+										;~ check type of a skill
+										Switch $aSkillType[$i]
+											;~ check if interrupt is attack skill
+											Case "Attack Skill"
+												If $aActivation[$i] > 0 Then
+													$fCastingTime = $aActivation[$i] * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
+												Else
+													$fCastingTime = DllStructGetData($objOwnInfo, 'AttackSpeed') * DllStructGetData($objOwnInfo, 'AttackSpeedModifier') + $fDistance * 0.42
+												EndIf
+											;~ check if interrupt is signet
+											Case "Signet"
+												$fCastingTime = $aActivation[$i] * (1 - 0.03 * GetAttributeByID(0, True))
+											;~ check if interrupt is spell and can interrupt only spells and chants
+											Case "SpellEnemy"
+												$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
+												$iType = DllStructGetData($objSkill, 'Type')
+												If $iType == 7 Or $iType == 10 Or $iType == 12 Or $iType == 14 Or $iType == 19 Or $iType == 21 Or $iType == 22 Or $iType == 26 Or $iType == 28 Then
+													ContinueLoop
+												EndIf
+											;~ check if interrupt is spell and can interrupt every skill
+											Case "SkillEnemy"
+												$fCastingTime = $aActivation[$i] * .5 ^ (GetAttributeByID(0, True) / 15)
+										EndSwitch
 										;~ calculate remaining time after ping, your spell, and time processing the code
 										$fExtraTime = ($fTime * 1000 - (TimerDiff($fProcessingTime) + $fCastRemaining + (1.3 * GetPing())))
 										;~ check if it's possible to rupt while waiting the min reaction time
@@ -651,7 +678,7 @@ Func EventHandler()
 							GUICtrlSetState($hUseSkills[$i], $GUI_UNCHECKED)
 							GUICtrlSetData($hSkills[$i], "")
 							GUICtrlSetData($hFunction[$i], "Interrupt")
-							GUICtrlSetData($hSkillType[$i], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+							GUICtrlSetData($hSkillType[$i], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 							GUICtrlSetData($hDelay[$i], "")
 							GUICtrlSetState($hDelay[$i], $GUI_ENABLE)
 							GUICtrlSetData($hDistance[$i], "")
@@ -773,7 +800,7 @@ Func EventHandler()
 				GUICtrlSetData($hFunction[$i], IniRead($hFileSets, GUICtrlRead($hSkillSet), "Function_" & $i, ""))
 				Switch GUICtrlRead($hFunction[$i])
 					Case "Interrupt"
-						GUICtrlSetData($hSkillType[$i], "|SpellEnemy|Attack Skill|Signet", IniRead($hFileSets, GUICtrlRead($hSkillSet), "SkillType_" & $i, "SpellEnemy"))
+						GUICtrlSetData($hSkillType[$i], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", IniRead($hFileSets, GUICtrlRead($hSkillSet), "SkillType_" & $i, "SpellEnemy"))
 						GUICtrlSetState($hDelay[$i], $GUI_ENABLE)
 						GUICtrlSetState($hDistance[$i], $GUI_ENABLE)
 					Case "Protection"
@@ -801,7 +828,7 @@ Func EventHandler()
 			GUICtrlSetData($hFunction[GUICtrlRead($hTab) + 1], IniRead($hFile, GUICtrlRead($hSkill), "Function", ""))
 			Switch GUICtrlRead($hFunction[GUICtrlRead($hTab) + 1])
 				Case "Interrupt"
-					GUICtrlSetData($hSkillType[GUICtrlRead($hTab) + 1], "|SpellEnemy|Attack Skill|Signet", IniRead($hFile, GUICtrlRead($hSkill), "SkillType", "SpellEnemy"))
+					GUICtrlSetData($hSkillType[GUICtrlRead($hTab) + 1], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", IniRead($hFile, GUICtrlRead($hSkill), "SkillType", "SpellEnemy"))
 					GUICtrlSetState($hDelay[GUICtrlRead($hTab) + 1], $GUI_ENABLE)
 					GUICtrlSetState($hDistance[GUICtrlRead($hTab) + 1], $GUI_ENABLE)
 				Case "Protection"
@@ -830,7 +857,7 @@ Func EventHandler()
 			_MarksOnOff()
 		Case $hFunction[1]
 			If GUICtrlRead($hFunction[1]) == "Interrupt" Then
-				GUICtrlSetData($hSkillType[1], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+				GUICtrlSetData($hSkillType[1], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 				GUICtrlSetState($hDelay[1], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[1], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[1]) == "Protection" Then
@@ -844,7 +871,7 @@ Func EventHandler()
 			EndIf
 		Case $hFunction[2]
 			If GUICtrlRead($hFunction[2]) == "Interrupt" Then
-				GUICtrlSetData($hSkillType[2], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+				GUICtrlSetData($hSkillType[2], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 				GUICtrlSetState($hDelay[2], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[2], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[2]) == "Protection" Then
@@ -858,7 +885,7 @@ Func EventHandler()
 			EndIf
 		Case $hFunction[3]
 			If GUICtrlRead($hFunction[3]) == "Interrupt" Then
-				GUICtrlSetData($hSkillType[3], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+				GUICtrlSetData($hSkillType[3], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 				GUICtrlSetState($hDelay[3], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[3], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[3]) == "Protection" Then
@@ -872,7 +899,7 @@ Func EventHandler()
 			EndIf
 		Case $hFunction[4]
 			If GUICtrlRead($hFunction[4]) == "Interrupt" Then
-				GUICtrlSetData($hSkillType[4], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+				GUICtrlSetData($hSkillType[4], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 				GUICtrlSetState($hDelay[4], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[4], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[4]) == "Protection" Then
@@ -886,7 +913,7 @@ Func EventHandler()
 			EndIf
 		Case $hFunction[5]
 			If GUICtrlRead($hFunction[5]) == "Interrupt" Then
-				GUICtrlSetData($hSkillType[5], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+				GUICtrlSetData($hSkillType[5], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 				GUICtrlSetState($hDelay[5], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[5], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[5]) == "Protection" Then
@@ -900,7 +927,7 @@ Func EventHandler()
 			EndIf
 		Case $hFunction[6]
 			If GUICtrlRead($hFunction[6]) == "Interrupt" Then
-				GUICtrlSetData($hSkillType[6], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+				GUICtrlSetData($hSkillType[6], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 				GUICtrlSetState($hDelay[6], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[6], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[6]) == "Protection" Then
@@ -914,7 +941,7 @@ Func EventHandler()
 			EndIf
 		Case $hFunction[7]
 			If GUICtrlRead($hFunction[7]) == "Interrupt" Then
-				GUICtrlSetData($hSkillType[7], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+				GUICtrlSetData($hSkillType[7], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 				GUICtrlSetState($hDelay[7], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[7], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[7]) == "Protection" Then
@@ -928,7 +955,7 @@ Func EventHandler()
 			EndIf
 		Case $hFunction[8]
 			If GUICtrlRead($hFunction[8]) == "Interrupt" Then
-				GUICtrlSetData($hSkillType[8], "|SpellEnemy|Attack Skill|Signet", "SpellEnemy")
+				GUICtrlSetData($hSkillType[8], "|SpellEnemy|SkillEnemy|Attack Skill|Signet", "SpellEnemy")
 				GUICtrlSetState($hDelay[8], $GUI_ENABLE)
 				GUICtrlSetState($hDistance[8], $GUI_ENABLE)
 			ElseIf GUICtrlRead($hFunction[8]) == "Protection" Then
