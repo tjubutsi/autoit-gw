@@ -37,8 +37,11 @@ HotKeySet("^t", "_ChangeStateOfSkill6")
 HotKeySet("^g", "_ChangeStateOfSkill7")
 HotKeySet("^b", "_ChangeStateOfSkill8")
 
+HotKeySet("!{NUMPAD0}", "HideGUI")
+HotKeySet("!{NUMPAD1}", "ShowGUI")
+
 #region gui
-Global Const $hGUI = GUICreate("GWA revision21", 600, 400)
+Global Const $hGUI = GUICreate("GWA revision22", 600, 400)
 Global Const $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global Const $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -1477,6 +1480,14 @@ EndFunc   ;==>_ShowEnemyParty
 Func _Reset()
 	ToolTip("")
 EndFunc   ;==>_Reset
+
+Func HideGUI()
+	GUISetState(@SW_HIDE)
+EndFunc   ;==>HideGUI
+
+Func ShowGUI()
+	GUISetState(@SW_SHOW)
+EndFunc   ;==>ShowGUI
 
 GUISetBkColor(0x999999)
 UpdateSkillSets()
