@@ -1,4 +1,4 @@
-;~ Version 3.6.6
+;~ Version 3.6.9
 #include-once
 #RequireAdmin
 
@@ -19,6 +19,8 @@ Local $mASMString, $mASMSize, $mASMCodeOffset
 Local $mGUI = GUICreate('GWA²'), $mSkillActivate, $mSkillCancel, $mSkillComplete, $mChatReceive, $mLoadFinished
 Local $mSkillLogStruct = DllStructCreate('dword;dword;dword;float')
 Local $mSkillLogStructPtr = DllStructGetPtr($mSkillLogStruct)
+Local $mChatLogStruct = DllStructCreate('dword;wchar[256]')
+Local $mChatLogStructPtr = DllStructGetPtr($mChatLogStruct)
 GUIRegisterMsg(0x501, 'Event')
 
 Local $mQueueCounter, $mQueueSize, $mQueueBase
@@ -256,9 +258,9 @@ Func Initialize($aGW, $bChangeTitle = True, $aUseStringLog = False, $aUseEventSy
 	$lTemp = GetScannedAddress('ScanSkillCancelLog', 5)
 	SetValue('SkillCancelLogStart', '0x' & Hex($lTemp, 8))
 	SetValue('SkillCancelLogReturn', '0x' & Hex($lTemp + 6, 8))
-	$lTemp = GetScannedAddress('ScanChatLog', 1)
+	$lTemp = GetScannedAddress('ScanChatLog', 18)
 	SetValue('ChatLogStart', '0x' & Hex($lTemp, 8))
-	SetValue('ChatLogReturn', '0x' & Hex($lTemp + 5, 8))
+	SetValue('ChatLogReturn', '0x' & Hex($lTemp + 6, 8))
 	$lTemp = GetScannedAddress('ScanTraderHook', -7)
 	SetValue('TraderHookStart', '0x' & Hex($lTemp, 8))
 	SetValue('TraderHookReturn', '0x' & Hex($lTemp + 5, 8))
@@ -408,7 +410,7 @@ Func Scan()
 	_('ScanSkillCancelLog:')
 	AddPattern('85C0741D6A006A42')
 	_('ScanChatLog:')
-	AddPattern('66833A0056578BC1')
+	AddPattern('8B45F48B138B4DEC50')
 	_('ScanSellItemFunction:')
 	AddPattern('8B4D2085C90F858E')
 	_('ScanStringLog:')
@@ -1968,6 +1970,11 @@ Func ChangeMaxZoom($aZoom = 750)
 	MemoryWrite($mZoomMoving, $aZoom, "float")
 EndFunc   ;==>ChangeMaxZoom
 
+;~ Description: Emptys Guild Wars client memory
+Func ClearMemory()
+	DllCall($mKernelHandle, 'int', 'SetProcessWorkingSetSize', 'int', $mGWProcHandle, 'int', -1, 'int', -1)
+EndFunc   ;==>SetMaxMemory
+
 ;~ Description: Changes the maximum memory Guild Wars can use.
 Func SetMaxMemory($aMemory = 157286400)
 	DllCall($mKernelHandle, 'int', 'SetProcessWorkingSetSizeEx', 'int', $mGWProcHandle, 'int', 1, 'int', $aMemory, 'int', 6)
@@ -2788,7 +2795,6 @@ Func GetNearestItemToAgent($aAgent = -2, $aCanPickUp = True)
 
 		If $aCanPickUp And Not GetCanPickUp($lAgentArray[$i]) Then ContinueLoop
 		$lDistance = (DllStructGetData($aAgent, 'X') - DllStructGetData($lAgentArray[$i], 'X')) ^ 2 + (DllStructGetData($aAgent, 'Y') - DllStructGetData($lAgentArray[$i], 'Y')) ^ 2
-
 		If $lDistance < $lNearestDistance Then
 			If DllStructGetData($lAgentArray[$i], 'ID') == $lID Then ContinueLoop
 			$lNearestAgent = $lAgentArray[$i]
@@ -2818,22 +2824,28 @@ EndFunc   ;==>GetParty
 
 ;~ Description: Quickly creates an array of agents of a given type
 Func GetAgentArray($aType = 0)
-	Local $lCount = 0
+	Local $lStruct
+	Local $lCount
+	Local $lBuffer = ''
 	DllStructSetData($mMakeAgentArray, 2, $aType)
-	MemoryWrite($mAgentCopyCount, 0)
+	MemoryWrite($mAgentCopyCount, -1, 'long')
 	Enqueue($mMakeAgentArrayPtr, 8)
 	Local $lDeadlock = TimerInit()
-	While $lCount <= 0 And TimerDiff($lDeadlock) < 5000
+	Do
 		Sleep(1)
-		$lCount = MemoryRead($mAgentCopyCount)
-	WEnd
-	Local $lBuffer = DllStructCreate('byte[' & $lCount * 448 & ']')
+		$lCount = MemoryRead($mAgentCopyCount, 'long')
+	Until $lCount >= 0 Or TimerDiff($lDeadlock) > 5000
+	If $lCount < 0 Then $lCount = 0
+	For $i = 1 To $lCount
+		$lBuffer &= 'Byte[448];'
+	Next
+	$lBuffer = DllStructCreate($lBuffer)
 	DllCall($mKernelHandle, 'int', 'ReadProcessMemory', 'int', $mGWProcHandle, 'int', $mAgentCopyBase, 'ptr', DllStructGetPtr($lBuffer), 'int', DllStructGetSize($lBuffer), 'int', '')
-	Local $lStructPtr = DllStructGetPtr($lBuffer)
 	Local $lReturnArray[$lCount + 1] = [$lCount]
 	For $i = 1 To $lCount
-		$lReturnArray[$i] = DllStructCreate('ptr vtable;byte unknown1[24];byte unknown2[4];ptr NextAgent;byte unknown3[8];long Id;float Z;byte unknown4[8];float BoxHoverWidth;float BoxHoverHeight;byte unknown5[8];float Rotation;byte unknown6[8];long NameProperties;byte unknown7[24];float X;float Y;byte unknown8[8];float NameTagX;float NameTagY;float NameTagZ;byte unknown9[12];long Type;float MoveX;float MoveY;byte unknown10[28];long Owner;byte unknown30[8];long ExtraType;byte unknown11[24];float AttackSpeed;float AttackSpeedModifier;word PlayerNumber;byte unknown12[6];ptr Equip;byte unknown13[10];byte Primary;byte Secondary;byte Level;byte Team;byte unknown14[6];float EnergyPips;byte unknown[4];float EnergyPercent;long MaxEnergy;byte unknown15[4];float HPPips;byte unknown16[4];float HP;long MaxHP;long Effects;byte unknown17[4];byte Hex;byte unknown18[18];long ModelState;long TypeMap;byte unknown19[16];long InSpiritRange;byte unknown20[16];long LoginNumber;float ModelMode;byte unknown21[4];long ModelAnimation;byte unknown22[32];byte LastStrike;byte Allegiance;word WeaponType;word Skill;byte unknown23[4];word WeaponItemId;word OffhandItemId', $lStructPtr)
-		$lStructPtr += 448
+		$lReturnArray[$i] = DllStructCreate('ptr vtable;byte unknown1[24];byte unknown2[4];ptr NextAgent;byte unknown3[8];long Id;float Z;byte unknown4[8];float BoxHoverWidth;float BoxHoverHeight;byte unknown5[8];float Rotation;byte unknown6[8];long NameProperties;byte unknown7[24];float X;float Y;byte unknown8[8];float NameTagX;float NameTagY;float NameTagZ;byte unknown9[12];long Type;float MoveX;float MoveY;byte unknown10[28];long Owner;byte unknown30[8];long ExtraType;byte unknown11[24];float AttackSpeed;float AttackSpeedModifier;word PlayerNumber;byte unknown12[6];ptr Equip;byte unknown13[10];byte Primary;byte Secondary;byte Level;byte Team;byte unknown14[6];float EnergyPips;byte unknown[4];float EnergyPercent;long MaxEnergy;byte unknown15[4];float HPPips;byte unknown16[4];float HP;long MaxHP;long Effects;byte unknown17[4];byte Hex;byte unknown18[18];long ModelState;long TypeMap;byte unknown19[16];long InSpiritRange;byte unknown20[16];long LoginNumber;float ModelMode;byte unknown21[4];long ModelAnimation;byte unknown22[32];byte LastStrike;byte Allegiance;word WeaponType;word Skill;byte unknown23[4];word WeaponItemId;word OffhandItemId')
+		$lStruct = DllStructCreate('byte[448]', DllStructGetPtr($lReturnArray[$i]))
+		DllStructSetData($lStruct, 1, DllStructGetData($lBuffer, $i))
 	Next
 	Return $lReturnArray
 EndFunc   ;==>GetAgentArray
@@ -3703,11 +3715,10 @@ Func SetEvent($aSkillActivate = '', $aSkillCancel = '', $aSkillComplete = '', $a
 
 	If $aChatReceive <> '' Then
 		WriteDetour('ChatLogStart', 'ChatLogProc')
-
 	Else
 		$mASMString = ''
-		_('cmp word[edx],0')
-		_('push esi')
+		_('add edi,E')
+		_('cmp eax,B')
 		WriteBinary($mASMString, GetValue('ChatLogStart'))
 	EndIf
 
@@ -3731,28 +3742,53 @@ Func Event($hwnd, $msg, $wparam, $lparam)
 			DllCall($mKernelHandle, 'int', 'ReadProcessMemory', 'int', $mGWProcHandle, 'int', $wparam, 'ptr', $mSkillLogStructPtr, 'int', 16, 'int', '')
 			Call($mSkillComplete, GetAgentByID(DllStructGetData($mSkillLogStruct, 1)), GetAgentByID(DllStructGetData($mSkillLogStruct, 2)), GetSkillByID(DllStructGetData($mSkillLogStruct, 3)))
 		Case 0x4
-			Local $lMessage = MemoryRead($wparam, 'wchar[256]')
-			Switch StringLeft($lMessage, 5)
-				Case '{<a=1', '-> {<'
-					If StringLeft($lMessage, 2) == '->' Then
-						$lMessage = StringSplit(StringTrimLeft($lMessage, 9), '</a>} <quote>', 1)
-						$lMessage[1] = "-> " & $lMessage[1]
+			DllCall($mKernelHandle, 'int', 'ReadProcessMemory', 'int', $mGWProcHandle, 'int', $wparam, 'ptr', $mChatLogStructPtr, 'int', 512, 'int', '')
+			Local $lMessage = DllStructGetData($mChatLogStruct, 2)
+			Local $lChannel
+			Local $lSender
+			Switch DllStructGetData($mChatLogStruct, 1)
+				Case 0
+					$lChannel = "Alliance"
+					$lSender = StringMid($lMessage, 6, StringInStr($lMessage, "</a>") - 6)
+					$lMessage = StringTrimLeft($lMessage, StringInStr($lMessage, "<quote>") + 6)
+				Case 3
+					$lChannel = "All"
+					$lSender = StringMid($lMessage, 6, StringInStr($lMessage, "</a>") - 6)
+					$lMessage = StringTrimLeft($lMessage, StringInStr($lMessage, "<quote>") + 6)
+				Case 9
+					$lChannel = "Guild"
+					$lSender = StringMid($lMessage, 6, StringInStr($lMessage, "</a>") - 6)
+					$lMessage = StringTrimLeft($lMessage, StringInStr($lMessage, "<quote>") + 6)
+				Case 11
+					$lChannel = "Team"
+					$lSender = StringMid($lMessage, 6, StringInStr($lMessage, "</a>") - 6)
+					$lMessage = StringTrimLeft($lMessage, StringInStr($lMessage, "<quote>") + 6)
+				Case 12
+					$lChannel = "Trade"
+					$lSender = StringMid($lMessage, 6, StringInStr($lMessage, "</a>") - 6)
+					$lMessage = StringTrimLeft($lMessage, StringInStr($lMessage, "<quote>") + 6)
+				Case 10
+					If StringLeft($lMessage, 3) == "-> " Then
+						$lChannel = "Sent"
+						$lSender = StringMid($lMessage, 10, StringInStr($lMessage, "</a>") - 10)
+						$lMessage = StringTrimLeft($lMessage, StringInStr($lMessage, "<quote>") + 6)
 					Else
-						$lMessage = StringSplit(StringTrimLeft($lMessage, 6), '</a>} <quote>', 1)
+						$lChannel = "Global"
+						$lSender = "Guild Wars"
 					EndIf
-					Call($mChatReceive, 'Whisper', $lMessage[1], $lMessage[2])
-				Case '<a=1>'
-					If StringInStr($lMessage, '</a>: <quote>') > 0 Then
-						$lMessage = StringSplit(StringTrimLeft($lMessage, 5), '</a>: <quote>', 1)
-						Call($mChatReceive, 'Chat', $lMessage[1], $lMessage[2])
-					ElseIf StringInStr($lMessage, '</a> ') > 0 Then
-						$lMessage = StringSplit(StringTrimLeft($lMessage, 5), '</a> ', 1)
-						Call($mChatReceive, 'Emote', $lMessage[1], $lMessage[2])
-					EndIf
-				Case '<quot'
+				Case 13
+					$lChannel = "Advisory"
+					$lSender = "Guild Wars"
+					$lMessage = StringTrimLeft($lMessage, StringInStr($lMessage, "<quote>") + 6)
+				Case 14
+					$lChannel = "Whisper"
+					$lSender = StringMid($lMessage, 7, StringInStr($lMessage, "</a>") - 7)
+					$lMessage = StringTrimLeft($lMessage, StringInStr($lMessage, "<quote>") + 6)
 				Case Else
-					Call($mChatReceive, 'Global', 'Guild Wars', $lMessage)
+					$lChannel = "Other"
+					$lSender = "Other"
 			EndSwitch
+			Call($mChatReceive, $lChannel, $lSender, $lMessage)
 		Case 0x5
 			Call($mLoadFinished)
 	EndSwitch
@@ -4060,18 +4096,18 @@ EndFunc   ;==>CreateSkillCompleteLog
 ;~ Description: Internal use only.
 Func CreateChatLog()
 	_('ChatLogProc:')
-	_('mov eax,dword[ChatLogLastMsg]')
-	_('cmp eax,ecx')
-	_('jz ChatLogExit')
-	_('mov dword[ChatLogLastMsg],ecx')
 
 	_('pushad')
+	_('mov ecx,dword[esp+1F4]')
+	_('mov ebx,eax')
 	_('mov eax,dword[ChatLogCounter]')
 	_('push eax')
 	_('shl eax,9')
 	_('add eax,ChatLogBase')
+	_('mov dword[eax],ebx')
 
 	_('mov edi,eax')
+	_('add eax,4')
 	_('xor ebx,ebx')
 
 	_('ChatLogCopyLoop:')
@@ -4080,7 +4116,7 @@ Func CreateChatLog()
 	_('add ecx,2')
 	_('add eax,2')
 	_('inc ebx')
-	_('cmp ebx,100')
+	_('cmp ebx,FF')
 	_('jz ChatLogCopyExit')
 	_('test dx,dx')
 	_('jnz ChatLogCopyLoop')
@@ -4102,8 +4138,8 @@ Func CreateChatLog()
 	_('popad')
 
 	_('ChatLogExit:')
-	_('cmp word[edx],0')
-	_('push esi')
+	_('add edi,E')
+	_('cmp eax,B')
 	_('ljmp ChatLogReturn')
 EndFunc   ;==>CreateChatLog
 
@@ -4187,7 +4223,7 @@ Func CreateStringLog()
 	_('cmp eax,0')
 	_('jbe StringLogExit')
 	_('cmp eax,StringLogSize')
-	_('ja StringLogExit')
+	_('jae StringLogExit')
 
 	_('shl eax,8')
 	_('add eax,StringLogBase')
@@ -4470,30 +4506,30 @@ Func CreateCommands()
 	_('xor edx,edx')
 	_('mov edi,AgentCopyBase')
 
-	_('CopyLoopStart:')
+	_('AgentCopyLoopStart:')
 	_('inc ebx')
 	_('cmp ebx,dword[MaxAgents]')
-	_('jge CopyLoopExit')
+	_('jge AgentCopyLoopExit')
 
 	_('mov esi,dword[AgentBase]')
 	_('lea esi,dword[esi+ebx*4]')
 	_('mov esi,dword[esi]')
 	_('test esi,esi')
-	_('jz CopyLoopStart')
+	_('jz AgentCopyLoopStart')
 
 	_('cmp eax,0')
 	_('jz CopyAgent')
 	_('cmp eax,dword[esi+9C]')
-	_('jnz CopyLoopStart')
+	_('jnz AgentCopyLoopStart')
 
 	_('CopyAgent:')
 	_('mov ecx,1C0')
 	_('clc')
 	_('repe movsb')
 	_('inc edx')
-	_('jmp CopyLoopStart')
+	_('jmp AgentCopyLoopStart')
 
-	_('CopyLoopExit:')
+	_('AgentCopyLoopExit:')
 	_('mov dword[AgentCopyCount],edx')
 	_('ljmp CommandReturn')
 EndFunc   ;==>CreateCommands
@@ -4529,6 +4565,9 @@ Func _($aASM)
 		Case StringLeft($aASM, 4) = 'jmp ' And StringLen($aASM) > 7
 			$mASMSize += 2
 			$mASMString &= 'EB(' & StringRight($aASM, StringLen($aASM) - 4) & ')'
+		Case StringLeft($aASM, 4) = 'jae '
+			$mASMSize += 2
+			$mASMString &= '73(' & StringRight($aASM, StringLen($aASM) - 4) & ')'
 		Case StringLeft($aASM, 3) = 'jz '
 			$mASMSize += 2
 			$mASMString &= '74(' & StringRight($aASM, StringLen($aASM) - 3) & ')'
@@ -4806,12 +4845,14 @@ Func _($aASM)
 					$lOpCode = '83F932'
 				Case 'cmp ecx,3C'
 					$lOpCode = '83F93C'
-				Case 'mov ecx,dword[ebp+8]'
-					$lOpCode = '8B4D08'
 				Case 'mov ecx,edx'
 					$lOpCode = '8BCA'
 				Case 'mov eax,ecx'
 					$lOpCode = '8BC1'
+				Case 'mov ecx,dword[ebp+8]'
+					$lOpCode = '8B4D08'
+				Case 'mov ecx,dword[esp+1F4]'
+					$lOpCode = '8B8C24F4010000'
 				Case 'mov ecx,dword[edi+4]'
 					$lOpCode = '8B4F04'
 				Case 'mov ecx,dword[edi+8]'
@@ -4830,6 +4871,8 @@ Func _($aASM)
 					$lOpCode = '8B0F'
 				Case 'mov dword[eax],ecx'
 					$lOpCode = '8908'
+				Case 'mov dword[eax],ebx'
+					$lOpCode = '8918'
 				Case 'mov edx,dword[eax+4]'
 					$lOpCode = '8B5004'
 				Case 'mov edx,dword[eax+c]'
@@ -4870,6 +4913,8 @@ Func _($aASM)
 					$lOpCode = '83F802'
 				Case 'cmp eax,0'
 					$lOpCode = '83F800'
+				Case 'cmp eax,B'
+					$lOpCode = '83F80B'
 				Case 'cmp eax,200'
 					$lOpCode = '3D00020000'
 				Case 'shl eax,4'
@@ -4888,6 +4933,8 @@ Func _($aASM)
 					$lOpCode = '8BF8'
 				Case 'mov dx,word[ecx]'
 					$lOpCode = '668B11'
+				Case 'mov dx,word[edx]'
+					$lOpCode = '668B12'
 				Case 'mov word[eax],dx'
 					$lOpCode = '668910'
 				Case 'test dx,dx'
@@ -4904,6 +4951,8 @@ Func _($aASM)
 					$lOpCode = '8B08'
 				Case 'mov ebx,edi'
 					$lOpCode = '8BDF'
+				Case 'mov ebx,eax'
+					$lOpCode = '8BD8'
 				Case 'mov eax,edi'
 					$lOpCode = '8BC7'
 				Case 'mov al,byte[ebx]'
