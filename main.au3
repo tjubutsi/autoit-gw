@@ -39,9 +39,11 @@ HotKeySet("^b", "_ChangeStateOfSkill8")
 
 HotKeySet("!{NUMPAD0}", "HideGUI")
 HotKeySet("!{NUMPAD1}", "ShowGUI")
+HotKeySet("!{NUMPAD4}", "HideTooltips")
+HotKeySet("!{NUMPAD5}", "ShowTooltips")
 
 #region gui
-Global Const $hGUI = GUICreate("GWA revision22", 600, 400)
+Global Const $hGUI = GUICreate("GWA revision23", 600, 400)
 Global Const $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global Const $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -52,6 +54,7 @@ Global $bMarkedMode = False
 Global $bInterruptingPaused = False
 Global $bAntiRuptEnabled = True
 Global $bRuptEverythingEnabled = False
+Global $bShowTooltips = True
 
 Global $bBusy = False
 Global $fMyTimer = 0
@@ -71,7 +74,7 @@ Global $fFuseTimer = 0
 
 Global $sSkillsList[9]
 Global $aSkillsChecked[9]
-Global Const $sBullsList = ",237,332,843,853,2808,"
+Global Const $sBullsList = ",237,332,843,853,1023,2808,"
 Global Const $sAntiRupt = "399,1726,409,426,61,3185,932,57,1053,1342,1344,860,408,1992,5,25,953,24,803,1994,931,23,"
 Global $sFullList = $sBullsList & $sAntiRupt
 Global Const $aHotkeys[9] = ["", "q", "w", "e", "r", "a", "s", "d", "f"]
@@ -421,9 +424,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														Sleep($fExtraTime)
 													EndIf
 													ChangeTarget($objTarget)
-													$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-													ToolTip($sWarning, 1000, 600)
+													If $bShowTooltips == True Then
+														$sWarning = "watch for " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
 													Sleep(25)
 													Send($aHotkeys[$i])
 													$bBusy = False
@@ -441,9 +446,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 															Sleep($fExtraTime)
 														EndIf
 														ChangeTarget($objTarget)
-														$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-														ToolTip($sWarning, 1000, 600)
+														If $bShowTooltips == True Then
+															$sWarning = "watch for " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+															$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+															ToolTip($sWarning, 1000, 600)
+														EndIf
 														Sleep(25)
 														Send($aHotkeys[$i])
 														$bBusy = False
@@ -459,9 +466,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													Sleep($fExtraTime)
 												EndIf
 												ChangeTarget($objTarget)
-												$sWarning = "HEAL ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-												ToolTip($sWarning, 1000, 600)
+												If $bShowTooltips == True Then
+													$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
+												EndIf
 												Sleep(25)
 												Send($aHotkeys[$i])
 												$bBusy = False
@@ -476,9 +485,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														Sleep($fExtraTime)
 													EndIf
 													ChangeTarget($objTarget)
-													$sWarning = "HEAL ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-													ToolTip($sWarning, 1000, 600)
+													If $bShowTooltips == True Then
+														$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
 													Sleep(25)
 													Send($aHotkeys[$i])
 													$bBusy = False
@@ -494,9 +505,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														Sleep($fExtraTime)
 													EndIf
 													ChangeTarget($objTarget)
-													$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-													ToolTip($sWarning, 1000, 600)
+													If $bShowTooltips == True Then
+														$sWarning = "hex on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
 													Sleep(25)
 													Send($aHotkeys[$i])
 													$bBusy = False
@@ -511,9 +524,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 															Sleep($fExtraTime)
 														EndIf
 														ChangeTarget($objTarget)
-														$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-														ToolTip($sWarning, 1000, 600)
+														If $bShowTooltips == True Then
+															$sWarning = "hex on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+															$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+															ToolTip($sWarning, 1000, 600)
+														EndIf
 														Sleep(25)
 														Send($aHotkeys[$i])
 														$bBusy = False
@@ -529,9 +544,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														$fExtraTime = Random($fExtraTime-$fCastingTime+100, $fExtraTime-$fCastingTime+175, 1)
 														Sleep($fExtraTime)
 													EndIf
-													$sWarning = "FUSE ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-													ToolTip($sWarning, 1000, 600)
+													If $bShowTooltips == True Then
+														$sWarning = "fuse on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
 													$iFuseTarget = DllStructGetData($objTarget, 'ID')
 													$iFuseNr = $i
 													$fFuseTimer = TimerInit()
@@ -591,9 +608,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
-												$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-												ToolTip($sWarning, 1000, 600)
+												If $bShowTooltips == True Then
+														$sWarning = "watch for " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+												EndIf
 												$bBusy = False
 												Return
 											EndIf
@@ -602,9 +621,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
-													$sWarning = "WATCH FOR " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-													ToolTip($sWarning, 1000, 600)
+													If $bShowTooltips == True Then
+														$sWarning = "watch for " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
 													$bBusy = False
 													Return
 												EndIf
@@ -613,9 +634,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 											If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
-												$sWarning = "HEAL ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-												$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-												ToolTip($sWarning, 1000, 600)
+												If $bShowTooltips == True Then
+													$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+													ToolTip($sWarning, 1000, 600)
+												EndIf
 												$bBusy = False
 												Return
 											EndIf
@@ -624,9 +647,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
-													$sWarning = "HEAL ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-													ToolTip($sWarning, 1000, 600)
+													If $bShowTooltips == True Then
+														$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
 													$bBusy = False
 													Return
 												EndIf
@@ -636,9 +661,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
-													$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-													ToolTip($sWarning, 1000, 600)
+													If $bShowTooltips == True Then
+														$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
 													$bBusy = False
 													Return
 												EndIf
@@ -647,9 +674,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 														$bBusy = True ;Ready
 														ChangeTarget($objTarget)
-														$sWarning = "HEX ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-														ToolTip($sWarning, 1000, 600)
+														If $bShowTooltips == True Then
+															$sWarning = "hex on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+															$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+															ToolTip($sWarning, 1000, 600)
+														EndIf
 														$bBusy = False
 														Return
 													EndIf
@@ -660,9 +689,11 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												If Not CheckHarmfulEffects($i) And Not GetIsKnocked($objOwnInfo) And Not GetIsDead($objOwnInfo) And Not $bBusy Then
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
-													$sWarning = "FUSE ON " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
-													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
-													ToolTip($sWarning, 1000, 600)
+													If $bShowTooltips == True Then
+														$sWarning = "fuse on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
+														ToolTip($sWarning, 1000, 600)
+													EndIf
 													$bBusy = False
 													Return
 												EndIf
@@ -1032,7 +1063,9 @@ EndFunc   ;==>UpdateSkills
 Func _OnOff()
 	$bEnabled = Not $bEnabled
 	If $bEnabled Then
-		ToolTip("ON", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("ON", 0, 0, "Information", 1)
+		EndIf
 		GUICtrlSetData($hOnOff, "Disable")
 		For $i = 1 To 8 Step 1
 			GUICtrlSetState($hUseSkills[$i], $GUI_DISABLE)
@@ -1065,7 +1098,9 @@ Func _OnOff()
 		SetEvent("CheckRupt", "", "CheckDiversion", "", "Load")
 	Else
 		GUICtrlSetData($hOnOff, "Enable")
-		ToolTip("OFF", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("OFF", 0, 0, "Information", 1)
+		EndIf
 		$sFullList = $sBullsList & $sAntiRupt
 
 		For $i = 1 To 8 Step 1
@@ -1184,10 +1219,14 @@ Func _LockOnOff()
 
 	If $bLockMode Then
 		GUICtrlSetState($hLockMode, $GUI_CHECKED)
-		ToolTip("Switched to LOCK Mode", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("Switched to LOCK Mode", 0, 0, "Information", 1)
+		EndIf
 	Else
 		GUICtrlSetState($hLockMode, $GUI_UNCHECKED)
-		ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_LockOnOff
 
@@ -1205,11 +1244,15 @@ Func _TargetOnOff()
 		If $bTargetMode == True Then
 			GUICtrlSetState($hTargetMode, $GUI_CHECKED)
 			$iTargeted = DllStructGetData($objTarget, 'ID')
-			ToolTip(FormatName($objTarget), 0, 0, "Target Info", 1)
+			If $bShowTooltips == True Then
+				ToolTip(FormatName($objTarget), 0, 0, "Target Info", 1)
+			EndIf
 		Else
 			GUICtrlSetState($hTargetMode, $GUI_UNCHECKED)
 			$iTargeted = 0
-			ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
+			If $bShowTooltips == True Then
+				ToolTip("Switched to NORMAL Mode", 0, 0, "Information", 1)
+			EndIf
 		EndIf
 	EndIf
 EndFunc   ;==>_TargetOnOff
@@ -1225,10 +1268,14 @@ Func _MarksOnOff()
 
 	If $bMarkedMode == True Then
 		GUICtrlSetState($hMarkedMode, $GUI_CHECKED)
-		ToolTip("Switched to MARKED Mode", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("Switched to MARKED Mode", 0, 0, "Information", 1)
+		EndIf
 	Else
 		GUICtrlSetState($hMarkedMode, $GUI_UNCHECKED)
-		ToolTip("Switched to NORMAL mode", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("Switched to NORMAL mode", 0, 0, "Information", 1)
+		Endif
 	EndIf
 	Return
 EndFunc   ;==>_MarksOnOff
@@ -1239,7 +1286,9 @@ Func _MarkTarget()
 
 	If DllStructGetData($objOwnInfo, 'Team') <> DllStructGetData($objTarget, 'Team') Then
 		$sMarkedTargets &= String(DllStructGetData($objTarget, 'ID')) & ","
-		ToolTip(FormatName($objTarget), 0, 0, "Target Info", 1)
+		If $bShowTooltips == True Then
+			ToolTip(FormatName($objTarget), 0, 0, "Target Info", 1)
+		EndIf
 	EndIf
 	Return
 EndFunc   ;==>_MarkTarget
@@ -1312,11 +1361,15 @@ Func _ChangeStateOfSkill1()
 	If GUICtrlRead($hUseSkills[1]) == $GUI_CHECKED Then
 		$aSkillsChecked[1] = "Off"
 		GUICtrlSetState($hUseSkills[1], $GUI_UNCHECKED)
-		ToolTip("SKILL 1 DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 1 DISABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf GUICtrlRead($hUseSkills[1]) == $GUI_UNCHECKED Then
 		$aSkillsChecked[1] = "On"
 		GUICtrlSetState($hUseSkills[1], $GUI_CHECKED)
-		ToolTip("SKILL 1 ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 1 ENABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_ChangeStateOfSkill1
 
@@ -1324,11 +1377,15 @@ Func _ChangeStateOfSkill2()
 	If GUICtrlRead($hUseSkills[2]) == $GUI_CHECKED Then
 		$aSkillsChecked[2] = "Off"
 		GUICtrlSetState($hUseSkills[2], $GUI_UNCHECKED)
-		ToolTip("SKILL 2 DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 2 DISABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf GUICtrlRead($hUseSkills[2]) == $GUI_UNCHECKED Then
 		$aSkillsChecked[2] = "On"
 		GUICtrlSetState($hUseSkills[2], $GUI_CHECKED)
-		ToolTip("SKILL 2 ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 2 ENABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_ChangeStateOfSkill2
 
@@ -1336,11 +1393,15 @@ Func _ChangeStateOfSkill3()
 	If GUICtrlRead($hUseSkills[3]) == $GUI_CHECKED Then
 		$aSkillsChecked[3] = "Off"
 		GUICtrlSetState($hUseSkills[3], $GUI_UNCHECKED)
-		ToolTip("SKILL 3 DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 3 DISABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf GUICtrlRead($hUseSkills[3]) == $GUI_UNCHECKED Then
 		$aSkillsChecked[3] = "On"
 		GUICtrlSetState($hUseSkills[3], $GUI_CHECKED)
-		ToolTip("SKILL 3 ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 3 ENABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_ChangeStateOfSkill3
 
@@ -1348,11 +1409,15 @@ Func _ChangeStateOfSkill4()
 	If GUICtrlRead($hUseSkills[4]) == $GUI_CHECKED Then
 		$aSkillsChecked[4] = "Off"
 		GUICtrlSetState($hUseSkills[4], $GUI_UNCHECKED)
-		ToolTip("SKILL 4 DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 4 DISABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf GUICtrlRead($hUseSkills[4]) == $GUI_UNCHECKED Then
 		$aSkillsChecked[4] = "On"
 		GUICtrlSetState($hUseSkills[4], $GUI_CHECKED)
-		ToolTip("SKILL 4 ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 4 ENABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_ChangeStateOfSkill4
 
@@ -1360,11 +1425,15 @@ Func _ChangeStateOfSkill5()
 	If GUICtrlRead($hUseSkills[5]) == $GUI_CHECKED Then
 		$aSkillsChecked[5] = "Off"
 		GUICtrlSetState($hUseSkills[5], $GUI_UNCHECKED)
-		ToolTip("SKILL 5 DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 5 DISABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf GUICtrlRead($hUseSkills[5]) == $GUI_UNCHECKED Then
 		$aSkillsChecked[5] = "On"
 		GUICtrlSetState($hUseSkills[5], $GUI_CHECKED)
-		ToolTip("SKILL 5 ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 5 ENABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_ChangeStateOfSkill5
 
@@ -1372,11 +1441,15 @@ Func _ChangeStateOfSkill6()
 	If GUICtrlRead($hUseSkills[6]) == $GUI_CHECKED Then
 		$aSkillsChecked[6] = "Off"
 		GUICtrlSetState($hUseSkills[6], $GUI_UNCHECKED)
-		ToolTip("SKILL 6 DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 6 DISABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf GUICtrlRead($hUseSkills[6]) == $GUI_UNCHECKED Then
 		$aSkillsChecked[6] = "On"
 		GUICtrlSetState($hUseSkills[6], $GUI_CHECKED)
-		ToolTip("SKILL 6 ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 6 ENABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_ChangeStateOfSkill6
 
@@ -1384,11 +1457,15 @@ Func _ChangeStateOfSkill7()
 	If GUICtrlRead($hUseSkills[7]) == $GUI_CHECKED Then
 		$aSkillsChecked[7] = "Off"
 		GUICtrlSetState($hUseSkills[7], $GUI_UNCHECKED)
-		ToolTip("SKILL 7 DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 7 DISABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf GUICtrlRead($hUseSkills[7]) == $GUI_UNCHECKED Then
 		$aSkillsChecked[7] = "On"
 		GUICtrlSetState($hUseSkills[7], $GUI_CHECKED)
-		ToolTip("SKILL 7 ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 7 ENABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_ChangeStateOfSkill7
 
@@ -1396,11 +1473,15 @@ Func _ChangeStateOfSkill8()
 	If GUICtrlRead($hUseSkills[8]) == $GUI_CHECKED Then
 		$aSkillsChecked[8] = "Off"
 		GUICtrlSetState($hUseSkills[8], $GUI_UNCHECKED)
-		ToolTip("SKILL 8 DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 8 DISABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf GUICtrlRead($hUseSkills[8]) == $GUI_UNCHECKED Then
 		$aSkillsChecked[8] = "On"
 		GUICtrlSetState($hUseSkills[8], $GUI_CHECKED)
-		ToolTip("SKILL 8 ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("SKILL 8 ENABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_ChangeStateOfSkill8
 #endregion change_state_of_skills
@@ -1409,27 +1490,39 @@ EndFunc   ;==>_ChangeStateOfSkill8
 Func _PauseOnOff()
 	$bInterruptingPaused = Not $bInterruptingPaused
 	If $bInterruptingPaused == True Then
-		ToolTip("PAUSED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("PAUSED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf $bInterruptingPaused == False Then
-		ToolTip("UNPAUSED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("UNPAUSED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_PauseOnOff
 
 Func _AntiRuptOnOff()
 	$bAntiRuptEnabled = Not $bAntiRuptEnabled
 	If $bAntiRuptEnabled == True Then
-		ToolTip("ANTI RUPT MODE ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("ANTI RUPT MODE ENABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf $bAntiRuptEnabled == False Then
-		ToolTip("ANTI RUPT MODE DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("ANTI RUPT MODE DISABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_AntiRuptOnOff
 
 Func _RuptEverythingOnOff()
 	$bRuptEverythingEnabled = Not $bRuptEverythingEnabled
 	If $bRuptEverythingEnabled == True Then
-		ToolTip("RUPT EVERYTHING MODE ENABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("RUPT EVERYTHING MODE ENABLED", 0, 0, "Information", 1)
+		EndIf
 	ElseIf $bRuptEverythingEnabled == False Then
-		ToolTip("RUPT EVERYTHING MODE DISABLED", 0, 0, "Information", 1)
+		If $bShowTooltips == True Then
+			ToolTip("RUPT EVERYTHING MODE DISABLED", 0, 0, "Information", 1)
+		EndIf
 	EndIf
 EndFunc   ;==>_RuptEverythingOnOff
 
@@ -1488,6 +1581,16 @@ EndFunc   ;==>HideGUI
 Func ShowGUI()
 	GUISetState(@SW_SHOW)
 EndFunc   ;==>ShowGUI
+
+Func HideTooltips()
+	$bShowTooltips = False
+	ToolTip("")
+EndFunc   ;==>HideTooltips
+
+Func ShowTooltips()
+	$bShowTooltips = True
+	ToolTip("Tooltips ENABLED")
+EndFunc   ;==>ShowTooltips
 
 GUISetBkColor(0x999999)
 UpdateSkillSets()
