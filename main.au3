@@ -43,7 +43,7 @@ HotKeySet("!{NUMPAD4}", "HideTooltips")
 HotKeySet("!{NUMPAD5}", "ShowTooltips")
 
 #region gui
-Global Const $hGUI = GUICreate("GWA revision23", 600, 400)
+Global Const $hGUI = GUICreate("GWA revision24", 600, 400)
 Global Const $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global Const $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -425,7 +425,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													EndIf
 													ChangeTarget($objTarget)
 													If $bShowTooltips == True Then
-														$sWarning = "watch for " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "watch for " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 													EndIf
@@ -447,7 +447,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														EndIf
 														ChangeTarget($objTarget)
 														If $bShowTooltips == True Then
-															$sWarning = "watch for " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+															$sWarning = "watch for " & GetPlayerNumber($objTarget) & @CRLF
 															$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 															ToolTip($sWarning, 1000, 600)
 														EndIf
@@ -467,7 +467,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												EndIf
 												ChangeTarget($objTarget)
 												If $bShowTooltips == True Then
-													$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning = "heal on " & GetPlayerNumber($objTarget) & @CRLF
 													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 													ToolTip($sWarning, 1000, 600)
 												EndIf
@@ -486,7 +486,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													EndIf
 													ChangeTarget($objTarget)
 													If $bShowTooltips == True Then
-														$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "heal on " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 													EndIf
@@ -506,7 +506,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													EndIf
 													ChangeTarget($objTarget)
 													If $bShowTooltips == True Then
-														$sWarning = "hex on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "hex on " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 													EndIf
@@ -525,7 +525,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														EndIf
 														ChangeTarget($objTarget)
 														If $bShowTooltips == True Then
-															$sWarning = "hex on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+															$sWarning = "hex on ME" &  @CRLF
 															$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 															ToolTip($sWarning, 1000, 600)
 														EndIf
@@ -545,7 +545,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														Sleep($fExtraTime)
 													EndIf
 													If $bShowTooltips == True Then
-														$sWarning = "fuse on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "fuse on " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 													EndIf
@@ -609,7 +609,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
 												If $bShowTooltips == True Then
-														$sWarning = "watch for " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "watch for " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 												EndIf
@@ -622,7 +622,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
 													If $bShowTooltips == True Then
-														$sWarning = "watch for " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "watch for " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 													EndIf
@@ -635,7 +635,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 												$bBusy = True ;Ready
 												ChangeTarget($objTarget)
 												If $bShowTooltips == True Then
-													$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+													$sWarning = "heal on " & GetPlayerNumber($objTarget) & @CRLF
 													$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 													ToolTip($sWarning, 1000, 600)
 												EndIf
@@ -648,7 +648,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
 													If $bShowTooltips == True Then
-														$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "heal on " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 													EndIf
@@ -662,7 +662,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
 													If $bShowTooltips == True Then
-														$sWarning = "heal on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "heal on " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 													EndIf
@@ -675,7 +675,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 														$bBusy = True ;Ready
 														ChangeTarget($objTarget)
 														If $bShowTooltips == True Then
-															$sWarning = "hex on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+															$sWarning = "hex on " & GetPlayerNumber($objTarget) & @CRLF
 															$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 															ToolTip($sWarning, 1000, 600)
 														EndIf
@@ -690,7 +690,7 @@ Func CheckRupt($objCaster, $objTarget, $objSkill, $fTime)
 													$bBusy = True ;Ready
 													ChangeTarget($objTarget)
 													If $bShowTooltips == True Then
-														$sWarning = "fuse on " & String(DllStructGetData($objTarget, 'PlayerNumber')) & @CRLF
+														$sWarning = "fuse on " & GetPlayerNumber($objTarget) & @CRLF
 														$sWarning &= $i & "___" & GetSkillName(DllStructGetData($objSkill, 'ID'))
 														ToolTip($sWarning, 1000, 600)
 													EndIf
@@ -1353,8 +1353,16 @@ Func FormatName($aAgent)
 		EndIf
 	Return $sString
 EndFunc   ;==>FormatName
-#endregion targeting_functions
 
+Func GetPlayerNumber($objAgent)
+	If IsDllStruct($objAgent) == 0 Then $objAgent = GetAgentByID($objAgent)
+	If DllStructGetData($objAgent, 'LoginNumber') > 0 Then
+		$sString = GetPlayerName($objAgent)
+		$iPosition = StringInStr($sString, "(")
+		Return StringTrimLeft($sString, $iPosition-1)
+	EndIf
+EndFunc   ;==>GetPlayerNumber
+#endregion targeting_functions
 
 #region change_state_of_skills
 Func _ChangeStateOfSkill1()
