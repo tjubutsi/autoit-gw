@@ -43,7 +43,7 @@ HotKeySet("!{NUMPAD4}", "HideTooltips")
 HotKeySet("!{NUMPAD5}", "ShowTooltips")
 
 #region gui
-Global Const $hGUI = GUICreate("GWA revision24", 600, 400)
+Global Const $hGUI = GUICreate("GWA revision25", 600, 400)
 Global Const $hFileSets = @ScriptDir & "\config\skillsSets.ini"
 Global Const $hFile = @ScriptDir & "\config\skills.ini"
 
@@ -74,8 +74,8 @@ Global $fFuseTimer = 0
 
 Global $sSkillsList[9]
 Global $aSkillsChecked[9]
-Global Const $sBullsList = ",237,332,843,853,1023,2808,"
-Global Const $sAntiRupt = "399,1726,409,426,61,3185,932,57,1053,1342,1344,860,408,1992,5,25,953,24,803,1994,931,23,"
+Global Const $sBullsList = ",237,332,843,853,1023,1146,2808,"
+Global Const $sAntiRupt = "399,1726,409,426,61,3185,932,57,1053,1342,1344,860,408,1992,5,25,953,24,803,1994,931,23,1403"
 Global $sFullList = $sBullsList & $sAntiRupt
 Global Const $aHotkeys[9] = ["", "q", "w", "e", "r", "a", "s", "d", "f"]
 
@@ -1546,7 +1546,7 @@ Func GetTeam($aTeam)
 	For $i = 1 To GetMaxAgents()
 		$lAgent = GetAgentByID($i)
 		If DllStructGetData($lAgent, 'ID') == 0 Then ContinueLoop
-		If GetIsLiving($lAgent) And DllStructGetData($lAgent, 'Team') == $lTeamNumber And (DllStructGetData($lAgent, 'LoginNumber') <> 0 Or StringRight(GetAgentName($lAgent), 9) == "Henchman]") Then
+		If Not GetIsDead($lAgent) And GetIsLiving($lAgent) And DllStructGetData($lAgent, 'Team') == $lTeamNumber And (DllStructGetData($lAgent, 'LoginNumber') <> 0 Or StringRight(GetAgentName($lAgent), 9) == "Henchman]") Then
 			$lTeam[0][0] += 1
 			ReDim $lTeam[$lTeam[0][0]+1][3]
 			$lTeam[$lTeam[0][0]][0] = DllStructGetData($lAgent, 'id')
